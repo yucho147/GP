@@ -16,6 +16,8 @@
 #+BEGIN_SRC bash
 GP/
 ├── README.org
+├── env
+│   └── requirements.txt
 ├── scripts
 │   ├── __init__.py
 │   ├── preprocess.py
