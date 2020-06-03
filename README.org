@@ -8,7 +8,7 @@
     - PoCなどで分散まで結果を出せるのは一人称・二人称含めて有益。意味のあるモジュールだと思う
 - overtake a scikit-learn
   - [[https://scikit-learn.org/stable/modules/gaussian_process.html#gaussian-process][sklearn.gaussian_process: Gaussian Processes]]
-  - [[https://github.com/scikit-learn/scikit-learn/tree/fd237278e895b42abe8d8d09105cbb82dc2cbba7/sklearn/gaussian_process][sorce]]
+  - [[https://github.com/scikit-learn/scikit-learn/tree/fd237278e895b42abe8d8d09105cbb82dc2cbba7/sklearn/gaussian_process][source]]
     - ~_gpr.py~ : 回帰
     - ~_gpc.py~ : 分類
     - ~kernels.py~ : カーネル関数
