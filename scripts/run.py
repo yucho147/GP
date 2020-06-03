@@ -16,20 +16,21 @@ class GaussianProcessRegressor(object):
 
         Parameters
         ----------
-        kernel: string, optional (default=gauss) : カーネル関数
-
-        iv_method: bool, optional (default=True) : 補助変数法(inducing variable method)
-
-        mode: string, optional (default='kissgp') : 補助変数法のmode
-            SoD(subset of data approximation) : 部分データ法
-            VB(variational bayesian methods) : 変分ベイズ法
-            kissgp : KISS-GP法
-
-        num_iv: int, optional (default=300) : SoDの場合の補助変数の個数
-
-        num_itr: int, optional (default=30) : 変分ベイズ方の時のイテレーションを回す回数
-
-        silent: bool, optional (default=True) : 学習過程を出力を消すオプション
+        kernel : string, optional (default=gauss)
+            カーネル関数
+        iv_method : bool, optional (default=True)
+            補助変数法(inducing variable method)
+        mode : string, optional (default='kissgp')
+            補助変数法のmode
+                SoD(subset of data approximation) : 部分データ法
+                VB(variational bayesian methods) : 変分ベイズ法
+                kissgp : KISS-GP法
+        num_iv : int, optional (default=300)
+            SoDの場合の補助変数の個数
+        num_itr : int, optional (default=30)
+            変分ベイズ方の時のイテレーションを回す回数
+        silent : bool, optional (default=True)
+            学習過程を出力を消すオプション
         """
         super(GaussianProcess, self).__init__()
         self.kernel = kernel
@@ -45,11 +46,12 @@ class GaussianProcessRegressor(object):
 
         Parameters
         ----------
-        x_train: np.array : 説明変数のarray
-
-        y_train: np.array : 目的変数のarray
-
-        silent: bool, optional (default=True) : 学習過程を出力を消すオプション
+        x_train : np.array
+            説明変数のarray
+        y_train : np.array
+            目的変数のarray
+        silent : bool, optional (default=True)
+            学習過程を出力を消すオプション
         """
         self.cov = cov          # 必ず分散共分散行列は作るはず?
         self.model = model      # gpytorchなりの学習済みモデルを設定
@@ -59,12 +61,12 @@ class GaussianProcessRegressor(object):
 
         Parameters
         ----------
-        x_train: np.array : 説明変数のarray
-
-        y_train: np.array : 目的変数のarray
-
-        **kwargs : 諸々オプション
-
+        x_train : np.array
+            説明変数のarray
+        y_train : np.array
+            目的変数のarray
+        **kwargs
+            諸々オプション
 
         Returns
         -------
@@ -79,13 +81,14 @@ class GaussianProcessRegressor(object):
 
         Parameters
         ----------
-        X: np.array : 説明変数のarray
-
+        X : np.array
+            説明変数のarray
 
         Returns
         -------
-        y: np.array : 予測された目的変数のarray
-            当然len(X) == len(y) -> Trueのはず
+        y : np.array
+            予測された目的変数のarray
+                当然len(X) == len(y) -> Trueのはず
         """
         self.model              # 予測ではこれを使う
         return y
@@ -94,7 +97,8 @@ class GaussianProcessRegressor(object):
         """学習段階のパラメータを取り出す
         Returns
         -------
-        params: dict : パラメータの辞書
+        params : dict
+            パラメータの辞書
         """
         params = dict(
             kernel=self.kernel,
@@ -110,7 +114,7 @@ class GaussianProcessRegressor(object):
 
         Returns
         -------
-        cov: np.array : 分散共分散行列
-
+        cov : np.array
+            分散共分散行列
         """
         return self.cov
