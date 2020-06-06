@@ -4,8 +4,6 @@ import numpy as np
 import torch
 
 
-
-
 class GPModel(gpytorch.models.ExactGP):
     """Documentation for GPModel
 
@@ -20,7 +18,7 @@ class GPModel(gpytorch.models.ExactGP):
         self.covar_module = gpytorch.kernels.ScaleKernel(
             gpytorch.kernels.RBFKernel(lengthscale_prior=lengthscale_prior),
             outputscale_prior=outputscale_prior
-            )
+        )
 
     def forward(self, x):
         mean_x = self.mean_module(x)
@@ -53,8 +51,8 @@ class Trainer(object):
 
 
 def main():
-    ## GPでは入力は多次元前提なので (num_data, dim) という shape
-    ## 一方で出力は一次元前提なので (num_data) という形式にする
+    # GPでは入力は多次元前提なので (num_data, dim) という shape
+    # 一方で出力は一次元前提なので (num_data) という形式にする
     train_inputs = torch.linspace(0, 1, 10).reshape(10, 1)
     train_targets = torch.sin(2*np.pi*train_inputs).reshape(10) + 0.3*torch.randn(10)
 
