@@ -39,7 +39,6 @@ class GaussianProcessRegressor(object):
         self.num_iv = num_iv
         self.num_itr = num_itr
 
-
     def fit(self, x_train: np.array, y_train: np.array,
             silent=True):
         """学習用のメソッド
@@ -53,8 +52,9 @@ class GaussianProcessRegressor(object):
         silent: bool, optional (default=True)
             学習過程を出力を消すオプション
         """
-        self.cov = cov          # 必ず分散共分散行列は作るはず?
-        self.model = model      # gpytorchなりの学習済みモデルを設定
+        self.cov = cov          # 必ず分散共分散行列は作るはず?
+        self.model = model      # gpytorchなりの学習済みモデルを設定
+        return self
 
     def train(self, x_train: np.array, y_train: np.array, **kwargs):
         """fitと同じ
@@ -74,7 +74,6 @@ class GaussianProcessRegressor(object):
 
         """
         self.fit(x_train, y_train, **kwargs)
-
 
     def predict(self, X: np.array) -> np.array:
         """予測用のメソッド
