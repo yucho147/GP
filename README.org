@@ -16,18 +16,42 @@
 For user
 #+BEGIN_SRC bash
 pip install GP
-#+END_SRC bash
+#+END_SRC
 
 
 For developer
 #+BEGIN_SRC bash
 pip install -e .
-#+END_SRC bash
+#+END_SRC
 
 or (for w/o dependency packages)
 #+BEGIN_SRC bash
 pip install -e . --no-deps
-#+END_SRC bash
+#+END_SRC
+*** ドキュメント作成を作った
+docstringちゃんと書くので ~sphinx~ を使ってドキュメントを作りましょう
+#+BEGIN_SRC bash
+pip install sphinx
+#+END_SRC
+
+パッケージをインストールしたら
+#+BEGIN_SRC bash
+sphinx-apidoc -F -o docs/ gp/
+cd docs/
+make html
+#+END_SRC
+
+以上でドキュメントが作成される。
+
+~_build/html/index.html~ をブラウザで確認
+
+**** 初回のみ続けて実行
+ #+BEGIN_SRC bash
+cd _build/html/
+python -m SimpleHTTPServer
+ #+END_SRC
+
+ でサーバーを立てて見れるようになる。
 
 ** ディレクトリ
 #+BEGIN_SRC bash
