@@ -13,12 +13,6 @@
     - ~_gpc.py~ : 分類
     - ~kernels.py~ : カーネル関数
 ** setup
-For user
-#+BEGIN_SRC bash
-pip install GP
-#+END_SRC
-
-
 For developer
 #+BEGIN_SRC bash
 pip install -e .
