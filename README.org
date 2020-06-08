@@ -30,26 +30,25 @@ pip install -e . --no-deps
 #+END_SRC
 *** ドキュメント作成を作った
 docstringちゃんと書くので ~sphinx~ を使ってドキュメントを作りましょう
-#+BEGIN_SRC bash
+**** 初期設定
+~sphinx~ のインストール
+ #+BEGIN_SRC bash
 pip install sphinx
-#+END_SRC
+ #+END_SRC
 
-パッケージをインストールしたら
-#+BEGIN_SRC bash
+初回のみ以下を実行(既にディレクトリがある場合スキップされる)
+ #+BEGIN_SRC bash
 sphinx-apidoc -F -o docs/ gp/
+ #+END_SRC
+
+ 本編のコードを更新したら以下のコマンドでドキュメントが更新される。
+ #+BEGIN_SRC bash
 cd docs/
 make html
-#+END_SRC
-
-以上でドキュメントが作成される。
-
-~_build/html/index.html~ をブラウザで確認
-
-**** 初回のみ続けて実行
- #+BEGIN_SRC bash
-cd _build/html/
-python -m SimpleHTTPServer
  #+END_SRC
+
+ 以上でドキュメントが作成される。
+ ~_build/html/index.html~ をブラウザで確認
 
  でサーバーを立てて見れるようになる。
 
