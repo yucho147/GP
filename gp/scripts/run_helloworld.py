@@ -14,10 +14,11 @@ def set_argument():
 
 class HelloWorld(object):
     """Documentation for HelloWorld
+
     Examples
     --------
-    python scripts/run_helloworld.py
-    Hello World!
+      python scripts/run_helloworld.py
+      Hello World!
     """
     def __init__(self, text):
         super(HelloWorld, self).__init__()

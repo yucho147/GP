@@ -24,3 +24,4 @@ jupyter-console==6.0.0
 jupyter-core==4.6.1
 japanize-matplotlib==1.0.5
 sphinx==3.0.4
+sphinx_rtd_theme=0.4.3
