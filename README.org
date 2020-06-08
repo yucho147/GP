@@ -12,6 +12,23 @@
     - ~_gpr.py~ : 回帰
     - ~_gpc.py~ : 分類
     - ~kernels.py~ : カーネル関数
+** setup
+For user
+#+BEGIN_SRC bash
+pip install GP
+#+END_SRC bash
+
+
+For developer
+#+BEGIN_SRC bash
+pip install -e .
+#+END_SRC bash
+
+or (for w/o dependency packages)
+#+BEGIN_SRC bash
+pip install -e . --no-deps
+#+END_SRC bash
+
 ** ディレクトリ
 #+BEGIN_SRC bash
 GP/
