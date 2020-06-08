@@ -67,7 +67,9 @@ GP/
 │   │   └── run_helloworld.py
 │   └── utils
 │       └── utils.py
-└── proto
+├── proto
+├── setup.cfg
+└── setup.py
 #+END_SRC
 *** ~scripts~
 実際に使うコード置き場
