@@ -20,7 +20,6 @@ GP/
 │   └── requirements.txt
 ├── gp
 │   ├── scripts
-│   │   ├── __init__.py
 │   │   ├── preprocess.py
 │   │   ├── run.py
 │   │   └── run_helloworld.py
