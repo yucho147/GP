@@ -12,10 +12,52 @@
     - ~_gpr.py~ : 回帰
     - ~_gpc.py~ : 分類
     - ~kernels.py~ : カーネル関数
+** setup
+For developer
+#+BEGIN_SRC bash
+pip install -e .
+#+END_SRC
+
+or (for w/o dependency packages)
+#+BEGIN_SRC bash
+pip install -e . --no-deps
+#+END_SRC
+*** ドキュメント作成
+docstringちゃんと書くので ~sphinx~ を使ってドキュメントを作ろう
+**** 初期設定
+~sphinx~ のインストール
+ #+BEGIN_SRC bash
+pip install sphinx
+ #+END_SRC
+
+初回のみ以下を実行(既にディレクトリがある場合スキップされる)
+ #+BEGIN_SRC bash
+sphinx-apidoc -F -o docs/ gp/
+ #+END_SRC
+
+ 本編のコードを更新したら以下のコマンドでドキュメントが更新される。
+ #+BEGIN_SRC bash
+cd docs/
+make html
+ #+END_SRC
+
+ 以上でドキュメントが作成される。
+ ~_build/html/index.html~ をブラウザで確認
+
+ でサーバーを立てて見れるようになる。
+
 ** ディレクトリ
 #+BEGIN_SRC bash
 GP/
 ├── README.org
+├── docs
+│   ├── Makefile
+│   ├── conf.py
+│   ├── gp.rst
+│   ├── gp.scripts.rst
+│   ├── gp.utils.rst
+│   ├── index.rst
+│   └── make.bat
 ├── env
 │   └── requirements.txt
 ├── gp
@@ -25,12 +67,16 @@ GP/
 │   │   └── run_helloworld.py
 │   └── utils
 │       └── utils.py
-└── proto
+├── proto
+├── setup.cfg
+└── setup.py
 #+END_SRC
 *** ~scripts~
 実際に使うコード置き場
 *** ~utils~
 便利関数置き場
+*** ~docs~
+ドキュメント置き場
 ** その他
  やりやすいように開発しちゃいやしょう
 *** TODOリスト(覚書)
