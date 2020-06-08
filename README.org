@@ -28,8 +28,8 @@ or (for w/o dependency packages)
 #+BEGIN_SRC bash
 pip install -e . --no-deps
 #+END_SRC
-*** ドキュメント作成を作った
-docstringちゃんと書くので ~sphinx~ を使ってドキュメントを作りましょう
+*** ドキュメント作成
+docstringちゃんと書くので ~sphinx~ を使ってドキュメントを作ろう
 **** 初期設定
 ~sphinx~ のインストール
  #+BEGIN_SRC bash
@@ -56,6 +56,14 @@ make html
 #+BEGIN_SRC bash
 GP/
 ├── README.org
+├── docs
+│   ├── Makefile
+│   ├── conf.py
+│   ├── gp.rst
+│   ├── gp.scripts.rst
+│   ├── gp.utils.rst
+│   ├── index.rst
+│   └── make.bat
 ├── env
 │   └── requirements.txt
 ├── gp
@@ -71,6 +79,8 @@ GP/
 実際に使うコード置き場
 *** ~utils~
 便利関数置き場
+*** ~docs~
+ドキュメント置き場
 ** その他
  やりやすいように開発しちゃいやしょう
 *** TODOリスト(覚書)
