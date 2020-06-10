@@ -58,6 +58,7 @@ def main():
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
     mse = torch.nn.MSELoss()
 
+    losses = {'train': [], 'test': []}
     for e in range(50):
         # train
         model.train()           # 重要!!
@@ -76,6 +77,7 @@ def main():
             optimizer.step()    # 重要!!
             train_loss += loss.item()
         train_loss = train_loss / len(train_iterator)
+        losses['train'].append(train_loss)
 
         # predict
         model.eval()
@@ -88,10 +90,14 @@ def main():
                 loss = mse(y_hat, y)
                 test_loss += loss.item()
         test_loss = test_loss / len(test_iterator)
+        losses['test'].append(test_loss)
 
         print(f'epoch: {e + 1}, train_loss: {train_loss:.10f}, test_loss: {test_loss:.10f}')
     model_path = './test_model_pth'
-    torch.save(model.state_dict(), model_path)
+    torch.save({'epoch': e,
+                'model_state_dict': model.state_dict(),
+                'optimizer_stata_dict': optimizer.state_dict(),
+                'loss': losses}, model_path)
 
 
 if __name__ == '__main__':
