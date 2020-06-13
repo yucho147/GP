@@ -130,8 +130,10 @@ def data_downloader():
 
     Examples
     --------
-    # プロジェクトのホームディレクトリで
-    $ python -c "from gp.utils.utils import data_downloader;data_downloader()"
+    プロジェクトのホームディレクトリから::
+
+        $ python -c "from gp.utils.utils import data_downloader;data_downloader()"
+
     """
     index = {
         1: {'url': 'https://archive.ics.uci.edu/ml/machine-learning-databases/00409/Daily_Demand_Forecasting_Orders.csv',
@@ -160,7 +162,7 @@ def data_downloader():
         print(f"url: {v['url']}")
         print()
     inp = int(input('欲しいデータの番号を入力して(1~6): '))
-    if inp in {1, 2, 3, 4, 5, 6}:
+    if inp in index.keys():
         directory = './data'
         if not os.path.isdir(directory):
             os.makedirs(directory)
