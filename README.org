@@ -50,6 +50,7 @@ make html
 #+BEGIN_SRC bash
 GP/
 ├── README.org
+├── data
 ├── docs
 │   ├── Makefile
 │   ├── conf.py
@@ -63,8 +64,7 @@ GP/
 ├── gp
 │   ├── scripts
 │   │   ├── preprocess.py
-│   │   ├── run.py
-│   │   └── run_helloworld.py
+│   │   └── run.py
 │   └── utils
 │       └── utils.py
 ├── proto
