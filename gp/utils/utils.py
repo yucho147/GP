@@ -62,3 +62,45 @@ def load_data(file_path):
         for d in reader:
             data.append(d)
     return header, data
+
+
+def check_device():
+    """pytorchが認識しているデバイスを返す関数
+
+    Returns
+    -------
+    device : str
+        cudaを使用する場合 `'cuda'` 、cpuで計算する場合は `'cpu'`
+    """
+    DEVICE = ('cuda' if torch.cuda.is_available() else 'cpu')
+    return DEVICE
+
+
+def array_to_tensor(input_data, device=None):
+    """np.array -> torch.tensor変換関数
+
+    Parameters
+    ----------
+    input_data : np.array
+        変換したいnp.array形式のデータ
+    device : str, default None
+        cudaを使用する場合 `'cuda'` 、cpuで計算する場合は `'cpu'`
+
+        指定しない場合はtorchが認識している環境が選ばれるため、特に意思がなければデフォルトで良いはず。
+
+    Returns
+    -------
+    output_data : torch.tensor
+        input_dataをtensor型に変換したもの
+    """
+    if device is None:
+        device = check_device()
+
+    if input_data.dtype == float:
+        # np.arrayはdoubleを前提として動いているが、
+        # torchはdouble(float64)を前提としていない機能があるため、float32に変更する必要がある
+        output_data = torch.tensor(input_data, dtype=torch.float32).contiguous().to(device)
+    elif input_data.dtype == int:
+        # 同様でtorchではlongが標準
+        output_data = torch.tensor(input_data, dtype=torch.long).contiguous().to(device)
+    return output_data
