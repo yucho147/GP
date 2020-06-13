@@ -4,6 +4,14 @@ gp.scripts package
 Submodules
 ----------
 
+gp.scripts.base\_sample module
+------------------------------
+
+.. automodule:: gp.scripts.base_sample
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 gp.scripts.preprocess module
 ----------------------------
 
@@ -16,14 +24,6 @@ gp.scripts.run module
 ---------------------
 
 .. automodule:: gp.scripts.run
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-gp.scripts.run\_helloworld module
----------------------------------
-
-.. automodule:: gp.scripts.run_helloworld
    :members:
    :undoc-members:
    :show-inheritance:

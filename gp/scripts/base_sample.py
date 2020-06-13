@@ -6,36 +6,37 @@ import torch
 
 class ExactGPModel(gpytorch.models.ExactGP):
     """ExactGP用のモデル定義クラス
+
     ExactGPを使用する場合、本クラスにてモデルを構築する(予定)
 
     Attributes
     ----------
-    mean_module : gpytorch.means.ConstantMean
+    mean_module : :obj:`gpytorch.means.ConstantMean`
         使用する平均推定用のインスタンス
-    covar_module : gpytorch.kernels.ScaleKernel
+    covar_module : :obj:`gpytorch.kernels.ScaleKernel`
         使用するカーネル関数のインスタンス
+
+    Parameters
+    ----------
+    train_x : torch.tensor
+        学習用データセットの説明変数
+    train_y : torch.tensor
+        学習用データセットの目的変数
+    likelihood : :obj:`gpytorch.likelihoods`
+        likelihoodのインスタンス
+    lengthscale_prior : :obj:`gpytorch.priors.NormalPrior`, default None
+        RBFKernelのexpの肩の分母を指すパラメータ
+
+        どの程度離れた点の影響を考慮するかを調整するパラメータとなる
+    outputscale_prior : :obj:`gpytorch.priors.NormalPrior`, default None
+        RBFKernelの係数を指すパラメータ
     """
     def __init__(self,
-                 train_x: torch.tensor,
-                 train_y: torch.tensor,
-                 likelihood: gpytorch.likelihoods,
+                 train_x,
+                 train_y,
+                 likelihood,
                  lengthscale_prior=None,
                  outputscale_prior=None):
-        """
-        Parameters
-        ----------
-        train_x : torch.tensor
-            学習用データセットの説明変数
-        train_y : torch.tensor
-            学習用データセットの目的変数
-        likelihood : gpytorch.likelihoods
-            likelihoodのインスタンス
-        lengthscale_prior : gpytorch.priors.NormalPrior, default None
-            RBFKernelのexpの肩の分母を指すパラメータ
-            どの程度離れた点の影響を考慮するかを調整するパラメータとなる
-        outputscale_prior : gpytorch.priors.NormalPrior, default None
-            RBFKernelの係数を指すパラメータ
-        """
         super(ExactGPModel, self).__init__(train_x,
                                            train_y,
                                            likelihood)
@@ -53,29 +54,46 @@ class ExactGPModel(gpytorch.models.ExactGP):
 
 class RunExactGP(object):
     """ExactGPModelの実行クラス
+
     ExactGPModelをラップし、学習・予測・プロット等を司る
 
     Attributes
     ----------
-    l_prior : gpytorch.priors.NormalPrior
+    l_prior : :obj:`gpytorch.priors.NormalPrior`
         RBFKernelのexpの肩の分母を指すパラメータ
+
         どの程度離れた点の影響を考慮するかを調整するパラメータとなる
-    s_prior : gpytorch.priors.NormalPrior
+    s_prior : :obj:`gpytorch.priors.NormalPrior`
         RBFKernelの係数を指すパラメータ
     _likelihood : str
         likelihoodを指定する文字列
-    likelihood : gpytorch.likelihoods
+    likelihood : :obj:`gpytorch.likelihoods`
         likelihoodのインスタンス
     _optimizer : str
         optimizerを指定する文字列
-    optimizer : torch.optim
+    optimizer : :obj:`torch.optim`
         optimizerのインスタンス
     _mll : str
         確率分布の周辺化の方法を指定する文字列
-    mll : gpytorch.mlls
+    mll : :obj:`gpytorch.mlls`
         確率分布の周辺化のインスタンス
-    model : gpytorch.models
+    model : :obj:`gpytorch.models`
         ガウス過程のモデルのインスタンス
+
+    Parameters
+    ----------
+    l_prior : :obj:`gpytorch.priors.NormalPrior`
+        RBFKernelのexpの肩の分母を指すパラメータ
+
+        どの程度離れた点の影響を考慮するかを調整するパラメータとなる
+    s_prior : :obj:`gpytorch.priors.NormalPrior`
+        RBFKernelの係数を指すパラメータ
+    likelihood : str
+        likelihoodとして使用するクラス名が指定される
+    optimizer : str
+        optimizerとして使用するクラス名が指定される
+    mll : str
+        確率分布の周辺化の方法のクラス名が指定される
     """
     def __init__(self,
                  l_prior=gpytorch.priors.NormalPrior(loc=torch.tensor(1.), scale=torch.tensor(10.)),  # 要検討
@@ -83,21 +101,6 @@ class RunExactGP(object):
                  likelihood='GaussianLikelihood',
                  optimizer='RMSprop',
                  mll='ExactMarginalLogLikelihood'):
-        """
-        Parameters
-        ----------
-        l_prior : gpytorch.priors.NormalPrior
-            RBFKernelのexpの肩の分母を指すパラメータ
-            どの程度離れた点の影響を考慮するかを調整するパラメータとなる
-        s_prior : gpytorch.priors.NormalPrior
-            RBFKernelの係数を指すパラメータ
-        likelihood : str
-            likelihoodとして使用するクラス名が指定される
-        optimizer : str
-            optimizerとして使用するクラス名が指定される
-        mll : str
-            確率分布の周辺化の方法のクラス名が指定される
-        """
         self.l_prior = l_prior
         self.s_prior = s_prior
         self._likelihood = likelihood
@@ -114,8 +117,8 @@ class RunExactGP(object):
             raise ValueError
 
     def set_model(self,
-                  train_x: torch.tensor,
-                  train_y: torch.tensor,
+                  train_x,
+                  train_y,
                   lr=1e-3):
         """使用するモデルのインスタンスを立てるメソッド
 
@@ -153,7 +156,7 @@ class RunExactGP(object):
         else:
             raise ValueError
 
-    def fit(self, epochs: int, verbose=True):
+    def fit(self, epochs, verbose=True):
         """学習用メソッド
 
         Parameters
@@ -176,8 +179,9 @@ class RunExactGP(object):
             if epoch % (epochs//10) == 0 and verbose:
                 print(f'Epoch {epoch + 1}/{epochs} - Loss: {loss.item():.3f}')
 
-    def predict(self, X: torch.tensor):
+    def predict(self, X):
         """予測用メソッド
+
         # TODO: inputsはnumpyにして、内部でtensor型に変更する
 
         Parameters
@@ -187,8 +191,9 @@ class RunExactGP(object):
 
         Returns
         -------
-        predicts : gpytorch.distributions.multivariate_normal.MultivariateNormal
+        predicts : :obj:`gpytorch.distributions.multivariate_normal.MultivariateNormal`
             予測された目的変数のオブジェクト
+
             likelihoodの__call__が呼び出されており、平均・標準偏差意外にも多くの要素で構成されている。
         predicts_mean : torch.tensor
             予測された目的変数の平均値
