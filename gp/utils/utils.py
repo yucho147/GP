@@ -104,3 +104,21 @@ def array_to_tensor(input_data, device=None):
         # 同様でtorchではlongが標準
         output_data = torch.tensor(input_data, dtype=torch.long).contiguous().to(device)
     return output_data
+
+
+def tensor_to_array(input_data):
+    """torch.tensor -> np.array変換関数
+
+    Parameters
+    ----------
+    input_data : torch.tensor
+        変換したいtorch.tensor形式のデータ
+
+    Returns
+    -------
+    output_data : np.array
+        input_dataをarray型に変換したもの
+    """
+    # numpyがメモリを共有するのを防ぐために以下の処理となる
+    output_data = input_data.to('cpu').detach().numpy().copy()
+    return output_data
