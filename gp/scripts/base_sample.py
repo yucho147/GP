@@ -116,6 +116,11 @@ class RunExactGP(object):
         self._set_likelihood()
         self._optimizer = optimizer
         self._mll = mll
+        self.epoch = 0
+        self.model = None  # 空のmodelを作成しないとloadできない
+        self.mll = None    # 空のmodelを作成しないとloadできない
+        self.optimizer = None  # 空のmodelを作成しないとloadできない
+        self.loss = []
 
     def _set_likelihood(self):
         """likelihoodとしてself._likelihoodの指示の元、インスタンスを立てるメソッド
@@ -179,7 +184,6 @@ class RunExactGP(object):
         verbose : bool, default True
             表示形式
         """
-        self.loss = []
         self.model.train()
         self.likelihood.train()
         for epoch in range(epochs):
