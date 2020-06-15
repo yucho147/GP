@@ -9,6 +9,7 @@ import yaml
 import logging
 from pathlib import Path
 from attrdict import AttrDict
+import urllib.request
 
 import numpy as np
 import pandas as pd
@@ -122,3 +123,48 @@ def tensor_to_array(input_data):
     # numpyがメモリを共有するのを防ぐために以下の処理となる
     output_data = input_data.to('cpu').detach().numpy().copy()
     return output_data
+
+
+def data_downloader():
+    """the UC Irvine Machine Learning Repositoryからのdata downloader
+
+    Examples
+    --------
+    プロジェクトのホームディレクトリから::
+
+        $ python -c "from gp.utils.utils import data_downloader;data_downloader()"
+
+    """
+    index = {
+        1: {'url': 'https://archive.ics.uci.edu/ml/machine-learning-databases/00409/Daily_Demand_Forecasting_Orders.csv',
+            'name': 'Daily Demand Forecasting Orders Data Set',
+            'page': 'https://archive.ics.uci.edu/ml/datasets/Daily+Demand+Forecasting+Orders'},
+        2: {'url': 'https://archive.ics.uci.edu/ml/machine-learning-databases/00247/data_akbilgic.xlsx',
+            'name': 'ISTANBUL STOCK EXCHANGE Data Set',
+            'page': 'https://archive.ics.uci.edu/ml/datasets/ISTANBUL+STOCK+EXCHANGE'},
+        3: {'url': 'https://archive.ics.uci.edu/ml/machine-learning-databases/00502/online_retail_II.xlsx',
+            'name': 'Online Retail II Data Set',
+            'page': 'https://archive.ics.uci.edu/ml/datasets/Online+Retail+II'},
+        4: {'url': 'https://archive.ics.uci.edu/ml/machine-learning-databases/00501/PRSA2017_Data_20130301-20170228.zip',
+            'name': 'Beijing Multi-Site Air-Quality Data Data Set',
+            'page': 'https://archive.ics.uci.edu/ml/datasets/Beijing+Multi-Site+Air-Quality+Data'},
+        5: {'url': 'https://archive.ics.uci.edu/ml/machine-learning-databases/00381/PRSA_data_2010.1.1-2014.12.31.csv',
+            'name': 'Beijing PM2.5 Data Data Set',
+            'page': 'https://archive.ics.uci.edu/ml/datasets/Beijing+PM2.5+Data'},
+        6: {'url': 'https://archive.ics.uci.edu/ml/machine-learning-databases/00514/Bias_correction_ucl.csv',
+            'name': 'Bias correction of numerical prediction model temperature forecast Data Set',
+            'page': 'https://archive.ics.uci.edu/ml/datasets/Bias+correction+of+numerical+prediction+model+temperature+forecast'}
+    }
+    for k, v in index.items():
+        print(f"number: {k}")
+        print(f"name: {v['name']}")
+        print(f"page: {v['page']}")
+        print(f"url: {v['url']}")
+        print()
+    inp = int(input('欲しいデータの番号を入力して(1~6): '))
+    if inp in index.keys():
+        directory = './data'
+        if not os.path.isdir(directory):
+            os.makedirs(directory)
+        urllib.request.urlretrieve(index[inp]['url'],
+                                   os.path.join(directory, os.path.basename(index[inp]['url'])))
