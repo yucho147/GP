@@ -5,7 +5,9 @@ import torch
 
 from gp.utils.utils import (check_device,
                             tensor_to_array,
-                            array_to_tensor)
+                            array_to_tensor,
+                            load_model,
+                            save_model)
 
 
 class ExactGPModel(gpytorch.models.ExactGP):
@@ -114,6 +116,11 @@ class RunExactGP(object):
         self._set_likelihood()
         self._optimizer = optimizer
         self._mll = mll
+        self.epoch = 0
+        self.model = None  # 空のmodelを作成しないとloadできない
+        self.mll = None    # 空のmodelを作成しないとloadできない
+        self.optimizer = None  # 空のmodelを作成しないとloadできない
+        self.loss = []
 
     def _set_likelihood(self):
         """likelihoodとしてself._likelihoodの指示の元、インスタンスを立てるメソッド
@@ -187,8 +194,12 @@ class RunExactGP(object):
             loss.backward()
             self.optimizer.step()
 
+            self.loss.append(loss.item())
+
             if epoch % (epochs//10) == 0 and verbose:
                 print(f'Epoch {epoch + 1}/{epochs} - Loss: {loss.item():.3f}')
+        # TODO: 追加学習のために再学習の際、self.epochを利用する形にする
+        self.epoch = epoch + 1
 
     def predict(self, X):
         """予測用メソッド
@@ -219,6 +230,42 @@ class RunExactGP(object):
             predicts_std = tensor_to_array(predicts.stddev)
         return predicts, (predicts_mean, predicts_std)
 
+    def save(self, file_path):
+        """モデルのsaveメソッド
+
+        Parameters
+        ----------
+        file_path : str
+            モデルの保存先のパスとファイル名
+        """
+        data = dict(
+            epoch=self.epoch,
+            model=self.model,
+            likelihood=self.likelihood,
+            mll=self.mll,
+            optimizer=self.optimizer,
+            loss=self.loss
+        )
+        save_model(file_path, **data)
+
+    def load(self, file_path):
+        """モデルのloadメソッド
+
+        Parameters
+        ----------
+        file_path : str
+            モデルの保存先のパスとファイル名
+        """
+        data = dict(
+            epoch=self.epoch,
+            model=self.model,
+            likelihood=self.likelihood,
+            mll=self.mll,
+            optimizer=self.optimizer,
+            loss=self.loss
+        )
+        self.epoch, self.model, self.likelihood, self.mll, self.optimizer, self.loss = load_model(file_path, **data)
+
     def plot(self):
         # TODO: 何が必要か定めて、実装
         pass
@@ -238,6 +285,8 @@ def main():
     run = RunExactGP()
     run.set_model(train_inputs, train_targets)
     run.fit(2000, verbose=True)
+    run.save('test.pth')        # モデルをsave
+    run.load('test.pth')        # モデルをload
 
     test_inputs = np.linspace(-0.2, 1.2, 100)
     predicts, (predicts_mean, predicts_std) = run.predict(test_inputs)

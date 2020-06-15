@@ -168,3 +168,78 @@ def data_downloader():
             os.makedirs(directory)
         urllib.request.urlretrieve(index[inp]['url'],
                                    os.path.join(directory, os.path.basename(index[inp]['url'])))
+
+
+def save_model(file_path, *, epoch, model, likelihood, mll, optimizer, loss):
+    """モデルの保存関数
+
+    Parameters
+    ----------
+    file_path : str
+        モデルの保存先のパスとファイル名
+    epoch : int
+        現在のエポック数
+    model : :obj:`gpytorch.models`
+        学習済みのモデルのオブジェクト
+    likelihood : :obj:`gpytorch.likelihoods`
+        学習済みのlikelihoodsのオブジェクト
+    mll : :obj:`gpytorch.mlls`
+        学習済みのmllsのオブジェクト
+    optimizer : :obj:`torch.optim`
+        学習済みのoptimのオブジェクト
+    loss : list
+        現在のエポックまでの経過loss
+    """
+    torch.save({'epoch': epoch,
+                'model': model.state_dict(),
+                'likelihood': likelihood.state_dict(),
+                'mll': mll.state_dict(),
+                'optimizer': optimizer.state_dict(),
+                'loss': loss},
+               file_path)
+
+
+def load_model(file_path, *, epoch, model, likelihood, mll, optimizer, loss):
+    """モデルの保存関数
+
+    Parameters
+    ----------
+    file_path : str
+        モデルの保存先のパスとファイル名
+    epoch : int
+        現在のエポック数
+    model : :obj:`gpytorch.models`
+        学習済みのモデルのオブジェクト
+    likelihood : :obj:`gpytorch.likelihoods`
+        学習済みのlikelihoodsのオブジェクト
+    mll : :obj:`gpytorch.mlls`
+        学習済みのmllsのオブジェクト
+    optimizer : :obj:`torch.optim`
+        学習済みのoptimのオブジェクト
+    loss : list
+        現在のエポックまでの経過loss
+
+    Returns
+    -------
+    epoch : int
+        現在のエポック数
+    model : :obj:`gpytorch.models`
+        学習済みのモデルのオブジェクト
+    likelihood : :obj:`gpytorch.likelihoods`
+        学習済みのlikelihoodsのオブジェクト
+    mll : :obj:`gpytorch.mlls`
+        学習済みのmllsのオブジェクト
+    optimizer : :obj:`torch.optim`
+        学習済みのoptimのオブジェクト
+    loss : list
+        現在のエポックまでの経過loss
+    """
+    temp = torch.load(file_path)
+    epoch = temp['epoch']
+    model.load_state_dict(temp['model'])
+    likelihood.load_state_dict(temp['likelihood'])
+    mll.load_state_dict(temp['mll'])
+    optimizer.load_state_dict(temp['optimizer'])
+    loss = temp['loss']
+
+    return epoch, model, likelihood, mll, optimizer, loss
