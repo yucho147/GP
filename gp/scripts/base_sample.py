@@ -3,6 +3,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 
+from gp.utils.utils import (check_device,
+                            tensor_to_array,
+                            array_to_tensor)
+
 
 class ExactGPModel(gpytorch.models.ExactGP):
     """ExactGP用のモデル定義クラス
@@ -77,6 +81,8 @@ class RunExactGP(object):
         確率分布の周辺化の方法を指定する文字列
     mll : :obj:`gpytorch.mlls`
         確率分布の周辺化のインスタンス
+    device : str
+        インスタンスを立てる時点のtorchが認識しているデバイス
     model : :obj:`gpytorch.models`
         ガウス過程のモデルのインスタンス
 
@@ -101,6 +107,7 @@ class RunExactGP(object):
                  likelihood='GaussianLikelihood',
                  optimizer='RMSprop',
                  mll='ExactMarginalLogLikelihood'):
+        self.device = check_device()
         self.l_prior = l_prior
         self.s_prior = s_prior
         self._likelihood = likelihood
@@ -112,7 +119,7 @@ class RunExactGP(object):
         """likelihoodとしてself._likelihoodの指示の元、インスタンスを立てるメソッド
         """
         if self._likelihood == 'GaussianLikelihood':
-            self.likelihood = gpytorch.likelihoods.GaussianLikelihood()
+            self.likelihood = gpytorch.likelihoods.GaussianLikelihood().to(self.device)
         else:
             raise ValueError
 
@@ -124,13 +131,17 @@ class RunExactGP(object):
 
         Parameters
         ----------
-        train_x : torch.tensor
+        train_x : np.array or torch.tensor
             学習用データセットの説明変数
-        train_y : torch.tensor
+        train_y : np.array or torch.tensor
             学習用データセットの目的変数
         lr : float
             学習率
         """
+        if type(train_x) == np.ndarray:
+            train_x = array_to_tensor(train_x)
+        if type(train_y) == np.ndarray:
+            train_y = array_to_tensor(train_y)
         # ここで上記モデルのインスタンスを立てる
         self.model = ExactGPModel(
             train_x,
@@ -138,7 +149,7 @@ class RunExactGP(object):
             self.likelihood,
             self.l_prior,
             self.s_prior
-        )
+        ).to(self.device)
         if self._mll == 'ExactMarginalLogLikelihood':
             # ここで上記周辺化のインスタンスを立てる
             self.mll = gpytorch.mlls.ExactMarginalLogLikelihood(
@@ -182,11 +193,9 @@ class RunExactGP(object):
     def predict(self, X):
         """予測用メソッド
 
-        # TODO: inputsはnumpyにして、内部でtensor型に変更する
-
         Parameters
         ----------
-        X : torch.tensor
+        X : np.array or torch.tensor
             入力説明変数
 
         Returns
@@ -195,17 +204,19 @@ class RunExactGP(object):
             予測された目的変数のオブジェクト
 
             likelihoodの__call__が呼び出されており、平均・標準偏差意外にも多くの要素で構成されている。
-        predicts_mean : torch.tensor
+        predicts_mean : np.array
             予測された目的変数の平均値
-        predicts_std : torch.tensor
+        predicts_std : np.array
             予測された目的変数の標準偏差(0.5 sigma?)
         """
+        if type(X) == np.ndarray:
+            X = array_to_tensor(X)
         self.model.eval()
         self.likelihood.eval()
         with torch.no_grad():
             predicts = self.likelihood(self.model(X))
-            predicts_mean = predicts.mean
-            predicts_std = predicts.stddev
+            predicts_mean = tensor_to_array(predicts.mean)
+            predicts_std = tensor_to_array(predicts.stddev)
         return predicts, (predicts_mean, predicts_std)
 
     def plot(self):
@@ -220,29 +231,29 @@ class RunExactGP(object):
 def main():
     # GPでは入力は多次元前提なので (num_data, dim) という shape
     # 一方で出力は一次元前提なので (num_data) という形式にする
-    train_inputs = torch.linspace(0, 1, 10).reshape(10, 1)
-    train_targets = torch.sin(2*np.pi*train_inputs).reshape(10) \
-        + 0.3*torch.randn(10)
+    train_inputs = np.linspace(0, 1, 10).reshape(10, 1)
+    train_targets = np.sin(2*np.pi*train_inputs).reshape(10) \
+        + 0.3*np.random.randn(10)
 
     run = RunExactGP()
     run.set_model(train_inputs, train_targets)
     run.fit(2000, verbose=True)
 
-    test_inputs = torch.linspace(-0.2, 1.2, 100)
+    test_inputs = np.linspace(-0.2, 1.2, 100)
     predicts, (predicts_mean, predicts_std) = run.predict(test_inputs)
 
     # plotはまだ未実装
     plt.style.use('seaborn-darkgrid')
-    plt.plot(test_inputs.numpy(), predicts_mean.numpy())
-    plt.plot(test_inputs.numpy(), predicts_mean.numpy() - predicts_std.numpy(), color='orange')
-    plt.plot(test_inputs.numpy(), predicts_mean.numpy() + predicts_std.numpy(), color='orange')
+    plt.plot(test_inputs, predicts_mean)
+    plt.plot(test_inputs, predicts_mean - predicts_std, color='orange')
+    plt.plot(test_inputs, predicts_mean + predicts_std, color='orange')
     plt.fill_between(
-        test_inputs.numpy(),
-        predicts_mean.numpy() - predicts_std.numpy(),
-        predicts_mean.numpy() + predicts_std.numpy(),
+        test_inputs,
+        predicts_mean - predicts_std,
+        predicts_mean + predicts_std,
         alpha=0.4
     )
-    plt.plot(train_inputs.numpy(), train_targets.numpy(), "ro")
+    plt.plot(train_inputs, train_targets, "ro")
     plt.show()
 
 
