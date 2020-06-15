@@ -82,7 +82,7 @@ class RunExactGP(object):
     mll : :obj:`gpytorch.mlls`
         確率分布の周辺化のインスタンス
     device : str
-        インスタンスを立てる時点のtorchが認識ているデバイス
+        インスタンスを立てる時点のtorchが認識しているデバイス
     model : :obj:`gpytorch.models`
         ガウス過程のモデルのインスタンス
 
