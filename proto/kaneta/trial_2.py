@@ -7,6 +7,8 @@ from gpytorch.variational import VariationalStrategy
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+from torch.utils.data import TensorDataset, DataLoader
+
 
 from gp.utils.utils import (check_device,
                             tensor_to_array,
@@ -15,14 +17,22 @@ from gp.utils.utils import (check_device,
                             save_model)
 
 
-
 class ApproximateGPModel(ApproximateGP):
     def __init__(self, inducing_points):
-        variational_distribution = CholeskyVariationalDistribution(inducing_points.size(0))
-        variational_strategy = VariationalStrategy(self, inducing_points, variational_distribution, learn_inducing_locations=True)
+        variational_distribution = CholeskyVariationalDistribution(
+            inducing_points.size(0)
+        )
+        variational_strategy = VariationalStrategy(
+            self,
+            inducing_points,
+            variational_distribution,
+            learn_inducing_locations=True
+        )
         super(ApproximateGPModel, self).__init__(variational_strategy)
         self.mean_module = gpytorch.means.ConstantMean()
-        self.covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.RBFKernel())
+        self.covar_module = gpytorch.kernels.ScaleKernel(
+            gpytorch.kernels.RBFKernel()
+        )
 
     def forward(self, x):
         mean_x = self.mean_module(x)
@@ -59,12 +69,15 @@ class RunApproximateGP(object):
     def set_model(self,
                   train_x,
                   train_y,
-                  lr=1e-3):
+                  lr=1e-3,
+                  batch_size=128,
+                  shuffle=True):
         if type(train_x) == np.ndarray:
             train_x = array_to_tensor(train_x)
         if type(train_y) == np.ndarray:
             train_y = array_to_tensor(train_y)
-        if isinstance(self.inducing_points_num, float) and self.inducing_points_num < 1:
+        if isinstance(self.inducing_points_num, float) and \
+           self.inducing_points_num < 1:
             inducing_points_len = int(len(train_x) * self.inducing_points_num)
             inducing_points = train_x[:inducing_points_len, :]
         elif isinstance(self.inducing_points_num, int):
@@ -72,6 +85,12 @@ class RunApproximateGP(object):
             inducing_points = train_x[:inducing_points_len, :]
         else:
             raise ValueError
+
+        train_dataset = TensorDataset(train_x, train_y)
+        self.train_loader = DataLoader(train_dataset,
+                                       batch_size=batch_size,
+                                       shuffle=shuffle)
+
         # ここで上記モデルのインスタンスを立てる
         self.model = ApproximateGPModel(
             inducing_points
@@ -94,11 +113,20 @@ class RunApproximateGP(object):
         else:
             raise ValueError
 
-    def fit(self, epochs, dataloader, verbose=True):
-        self.model.train()
-        self.likelihood.train()
+    def fit(self,
+            epochs,
+            *,
+            train_dataloader=None,
+            test_dataloader=None,
+            verbose=True):
+        if train_dataloader is None:
+            train_dataloader = self.train_loader
         for epoch in range(epochs):
-            for x_batch, y_batch in dataloader:
+            train_loss = []
+            test_loss = []
+            self.model.train()
+            self.likelihood.train()
+            for x_batch, y_batch in train_dataloader:
                 self.optimizer.zero_grad()
                 output = self.model(x_batch)
                 loss = - self.mll(output, y_batch)
@@ -106,9 +134,22 @@ class RunApproximateGP(object):
                 self.optimizer.step()
 
                 self.loss.append(loss.item())
+                train_loss.append(loss.item())
+
+            self.model.eval()
+            self.likelihood.eval()
+            if test_dataloader is not None:
+                for x_batch, y_batch in test_dataloader:
+                    with torch.no_grad():
+                        output = self.model(x_batch)
+                        loss = - self.mll(output, y_batch)
+                        test_loss.append(loss.item())
 
             if epoch % (epochs//10) == 0 and verbose:
-                print(f'Epoch {epoch + 1}/{epochs} - Loss: {loss.item():.3f}')
+                if test_loss:
+                    print(f'Epoch {epoch + 1}/{epochs} - Train Loss: {np.mean(train_loss):.3f} / Test Loss: {np.mean(test_loss):.3f}')
+                else:
+                    print(f'Epoch {epoch + 1}/{epochs} - Train Loss: {np.mean(train_loss):.3f}')
         # TODO: 追加学習のために再学習の際、self.epochを利用する形にする
         self.epoch = epoch + 1
 
@@ -155,8 +196,6 @@ class RunApproximateGP(object):
 
 
 def main():
-    # GPでは入力は多次元前提なので (num_data, dim) という shape
-    # 一方で出力は一次元前提なので (num_data) という形式にする
     num = 3500
     date_time = np.arange(num)
     input_1 = np.sin(np.arange(num) * 0.05) + np.random.randn(num) / 6
@@ -173,13 +212,16 @@ def main():
     test_inputs = data[train_n:, 1:-1]
     test_targets = data[train_n:, -1]
 
-    from torch.utils.data import TensorDataset, DataLoader
-    train_dataset = TensorDataset(array_to_tensor(train_inputs), array_to_tensor(train_targets))
-    train_loader = DataLoader(train_dataset, batch_size=500, shuffle=True)
+    test_dataset = TensorDataset(array_to_tensor(test_inputs),
+                                 array_to_tensor(test_targets))
+    test_loader = DataLoader(test_dataset,
+                             batch_size=500)
 
     run = RunApproximateGP()
-    run.set_model(train_inputs, train_targets, lr=3e-2)
-    run.fit(15, train_loader, verbose=True)
+    run.set_model(train_inputs, train_targets, lr=3e-2, batch_size=500)
+    run.fit(15, test_dataloader=test_loader, verbose=True)
+    # test_dataloaderにDataLoaderを渡せば、val lossも出力されるようになる
+    # もしない場合にはtrainのlossのみが出力される
     run.save('test.pth')        # モデルをsave
     run.load('test.pth')        # モデルをload
 
