@@ -238,6 +238,19 @@ def main():
         alpha=0.6,
         label='var'
     )
+    # trainで予測したければ下記のコメントを外す
+    # predicts, (predicts_mean, predicts_std) = run.predict(train_inputs)
+    # # plotはまだ未実装
+    # plt.style.use('seaborn-darkgrid')
+    # plt.plot(data[:train_n, 0], predicts_mean, label='predicts', linewidth=2)
+    # plt.plot(data[:train_n, 0], train_targets, label='true value', linewidth=1)
+    # plt.fill_between(
+    #     data[:train_n, 0],
+    #     predicts_mean - predicts_std,
+    #     predicts_mean + predicts_std,
+    #     alpha=0.6,
+    #     label='var'
+    # )
     plt.title(f'step={step}')
     plt.legend()
     plt.show()
