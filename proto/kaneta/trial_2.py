@@ -95,6 +95,7 @@ class RunApproximateGP(object):
         self.model = ApproximateGPModel(
             inducing_points
         ).to(self.device)
+
         if self._mll == 'VariationalELBO':
             # ここで上記周辺化のインスタンスを立てる
             self.mll = gpytorch.mlls.VariationalELBO(
@@ -102,14 +103,22 @@ class RunApproximateGP(object):
                 self.model,
                 num_data=train_y.size(0)
             )
-            if self._optimizer == 'Adam':
-                # ここで損失関数のインスタンスを立てる
-                self.optimizer = torch.optim.Adam([
-                    {'params': self.model.parameters()},
-                    {'params': self.likelihood.parameters()}
-                ], lr=lr)
-            else:
-                raise ValueError
+        elif self._mll == 'PredictiveLogLikelihood':
+            # ここで上記周辺化のインスタンスを立てる
+            self.mll = gpytorch.mlls.PredictiveLogLikelihood(
+                self.likelihood,
+                self.model,
+                num_data=train_y.size(0)
+            )
+        else:
+            raise ValueError
+
+        if self._optimizer == 'Adam':
+            # ここで損失関数のインスタンスを立てる
+            self.optimizer = torch.optim.Adam([
+                {'params': self.model.parameters()},
+                {'params': self.likelihood.parameters()}
+            ], lr=lr)
         else:
             raise ValueError
 
@@ -202,7 +211,7 @@ def main():
     input_2 = np.sin(np.arange(num) * 0.05 / 1.5) + input_1 + np.random.randn(num) / 6
     input_3 = np.cos(np.arange(num) * 0.05 / 2) + input_2
     input_3 = input_3 + np.random.randn(num) / 2 * input_3  # 自分自身の値が大きいと誤差項が大きくなるように設定
-    step = 30
+    step = 10
     data = np.array([date_time[:-step], input_1[:-step], input_2[:-step], input_3[:-step], input_3[step:]]).T
 
     train_n = int(floor(0.9 * len(data)))
@@ -217,7 +226,7 @@ def main():
     test_loader = DataLoader(test_dataset,
                              batch_size=500)
 
-    run = RunApproximateGP()
+    run = RunApproximateGP(mll='PredictiveLogLikelihood')
     run.set_model(train_inputs, train_targets, lr=3e-2, batch_size=500)
     run.fit(15, test_dataloader=test_loader, verbose=True)
     # test_dataloaderにDataLoaderを渡せば、val lossも出力されるようになる
