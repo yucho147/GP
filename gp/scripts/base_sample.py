@@ -15,13 +15,6 @@ class ExactGPModel(gpytorch.models.ExactGP):
 
     ExactGPを使用する場合、本クラスにてモデルを構築する(予定)
 
-    Attributes
-    ----------
-    mean_module : :obj:`gpytorch.means.ConstantMean`
-        使用する平均推定用のインスタンス
-    covar_module : :obj:`gpytorch.kernels.ScaleKernel`
-        使用するカーネル関数のインスタンス
-
     Parameters
     ----------
     train_x : torch.tensor
@@ -62,31 +55,6 @@ class RunExactGP(object):
     """ExactGPModelの実行クラス
 
     ExactGPModelをラップし、学習・予測・プロット等を司る
-
-    Attributes
-    ----------
-    l_prior : :obj:`gpytorch.priors.NormalPrior`
-        RBFKernelのexpの肩の分母を指すパラメータ
-
-        どの程度離れた点の影響を考慮するかを調整するパラメータとなる
-    s_prior : :obj:`gpytorch.priors.NormalPrior`
-        RBFKernelの係数を指すパラメータ
-    _likelihood : str
-        likelihoodを指定する文字列
-    likelihood : :obj:`gpytorch.likelihoods`
-        likelihoodのインスタンス
-    _optimizer : str
-        optimizerを指定する文字列
-    optimizer : :obj:`torch.optim`
-        optimizerのインスタンス
-    _mll : str
-        確率分布の周辺化の方法を指定する文字列
-    mll : :obj:`gpytorch.mlls`
-        確率分布の周辺化のインスタンス
-    device : str
-        インスタンスを立てる時点のtorchが認識しているデバイス
-    model : :obj:`gpytorch.models`
-        ガウス過程のモデルのインスタンス
 
     Parameters
     ----------
