@@ -335,7 +335,7 @@ class RunApproximateGP(object):
 
 
 def main():
-    num = 2500
+    num = 1500
     date_time = np.arange(num)
     input_1 = np.sin(np.arange(num) * 0.05) + np.random.randn(num) / 6
     input_2 = np.sin(np.arange(num) * 0.05 / 1.5) + input_1 + np.random.randn(num) / 6
@@ -365,8 +365,6 @@ def main():
     run.load('test.pth')        # モデルをload
 
     predicts, (predicts_mean, predicts_std) = run.predict(test_inputs)
-
-    import ipdb; ipdb.set_trace()
 
     # plotはまだ未実装
     plt.style.use('seaborn-darkgrid')
