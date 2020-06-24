@@ -4,6 +4,14 @@ gp.scripts package
 Submodules
 ----------
 
+gp.scripts.base\_ApproximateGP module
+-------------------------------------
+
+.. automodule:: gp.scripts.base_ApproximateGP
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 gp.scripts.base\_sample module
 ------------------------------
 
