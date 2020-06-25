@@ -24,8 +24,10 @@ class ApproximateGPModel(ApproximateGP):
 
     Parameters
     ----------
-    inducing_points : int
-        補助変数の個数
+    inducing_points : torch.tensor
+        補助変数の座標
+
+        `learn_inducing_locations=True` である以上、ここで指定する補助変数は更新される
     ex_var_dim : int
         説明変数の個数
 
@@ -64,31 +66,31 @@ class RunApproximateGP(object):
     inducing_points_num : int or float
         補助変数の個数(int)
 
-        もし 0 < inducing_points < 1 が渡された場合学習用データの len と inducing_points の積が補助変数の個数として設定される
+        もし 0 < inducing_points_num < 1 が渡された場合学習用データの len と inducing_points_num の積が補助変数の個数として設定される
     likelihood : str, default 'GaussianLikelihood'
         likelihoodとして使用するクラス名が指定される
     optimizer : str, default 'Adam'
         optimizerとして使用するクラス名が指定される
     mll : str, default 'VariationalELBO'
         確率分布の周辺化の方法のクラス名が指定される
-    ARD : bool, default True
+    ard_option : bool, default True
         ARDカーネルを利用するかが指定される
 
-        もし :obj:`RunApproximateGP.kernel_coeff` を利用する場合 `ARD=True` を選択する
+        もし :obj:`RunApproximateGP.kernel_coeff` を利用する場合 `ard_option=True` を選択する
     """
     def __init__(self,
                  inducing_points_num=0.5,
                  likelihood='GaussianLikelihood',
                  optimizer='Adam',
                  mll='VariationalELBO',
-                 ARD=True):
+                 ard_option=True):
         self.device = check_device()
         self.inducing_points_num = inducing_points_num
         self._likelihood = likelihood
         self._set_likelihood()
         self._optimizer = optimizer
         self._mll = mll
-        self.ARD = ARD
+        self.ard_option = ard_option
         self.epoch = 0
         self.model = None  # 空のmodelを作成しないとloadできない
         self.mll = None    # 空のmodelを作成しないとloadできない
@@ -109,7 +111,7 @@ class RunApproximateGP(object):
                   lr=1e-3,
                   batch_size=128,
                   shuffle=True,
-                  ARD=None):
+                  ard_option=None):
         """使用するモデルのインスタンスを立てるメソッド
 
         Parameters
@@ -124,7 +126,7 @@ class RunApproximateGP(object):
             バッチ数
         shffle : bool, default True
             学習データをシャッフルしてミニバッチ学習させるかを設定
-        ARD : bool, default None
+        ard_option : bool, default None
             ARDカーネルを利用するかが指定される
         """
         if type(train_x) == np.ndarray:
@@ -134,14 +136,16 @@ class RunApproximateGP(object):
         if isinstance(self.inducing_points_num, float) and \
            self.inducing_points_num < 1:
             inducing_points_len = int(len(train_x) * self.inducing_points_num)
-            inducing_points = train_x[:inducing_points_len, :]
+            indices = torch.randperm(len(train_x))[:inducing_points_len]
+            inducing_points = train_x[indices]
         elif isinstance(self.inducing_points_num, int):
             inducing_points_len = self.inducing_points_num
-            inducing_points = train_x[:inducing_points_len, :]
+            indices = torch.randperm(len(train_x))[:inducing_points_len]
+            inducing_points = train_x[indices]
         else:
             raise ValueError
-        if ARD is None:
-            ARD = self.ARD
+        if ard_option is None:
+            ard_option = self.ard_option
             ex_var_dim = train_x.shape[1]
 
         train_dataset = TensorDataset(train_x, train_y)
@@ -150,7 +154,7 @@ class RunApproximateGP(object):
                                        shuffle=shuffle)
 
         # ここで上記モデルのインスタンスを立てる
-        if ARD:
+        if ard_option:
             self.model = ApproximateGPModel(
                 inducing_points,
                 ex_var_dim=ex_var_dim
@@ -255,7 +259,7 @@ class RunApproximateGP(object):
         predicts : :obj:`gpytorch.distributions.multivariate_normal.MultivariateNormal`
             予測された目的変数のオブジェクト
 
-            likelihoodの__call__が呼び出されており、平均・標準偏差意外にも多くの要素で構成されている。
+            likelihoodの__call__が呼び出されており、平均・標準偏差以外にも多くの要素で構成されている。
         predicts_mean : np.array
             予測された目的変数の平均値
         predicts_std : np.array
@@ -315,7 +319,7 @@ class RunApproximateGP(object):
         output_dict : dict
             カーネル関数の係数
 
-            `ARD=True` の場合、 $\Theta$ が各々の説明変数ごとに重みを変えて更新され、出力される
+            `ard_option=True` の場合、 $\Theta$ が各々の説明変数ごとに重みを変えて更新され、出力される
 
         Warning
         --------
