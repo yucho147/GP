@@ -87,7 +87,6 @@ class RunApproximateGP(object):
         self.device = check_device()
         self.inducing_points_num = inducing_points_num
         self._likelihood = likelihood
-        self._set_likelihood()
         self._optimizer = optimizer
         self._mll = mll
         self.ard_option = ard_option
@@ -101,7 +100,7 @@ class RunApproximateGP(object):
         """likelihoodとしてself._likelihoodの指示の元、インスタンスを立てるメソッド
         """
         if self._likelihood in {'GaussianLikelihood', 'GL'}:
-            self.likelihood = gpytorch.likelihoods.GaussianLikelihood().to(self.device)
+            return gpytorch.likelihoods.GaussianLikelihood().to(self.device)
         else:
             raise ValueError
 
@@ -200,6 +199,9 @@ class RunApproximateGP(object):
                 inducing_points,
                 ex_var_dim=None
             ).to(self.device)
+
+        # likelihoodのインスタンスを立てる
+        self.likelihood = self._set_likelihood()
 
         num_data = train_y.size(0)
         # mllのインスタンスを立てる
