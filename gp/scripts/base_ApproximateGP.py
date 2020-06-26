@@ -137,6 +137,26 @@ class RunApproximateGP(object):
                 {'params': self.model.parameters()},
                 {'params': self.likelihood.parameters()}
             ], lr=lr)
+        elif self._optimizer == 'SGD':
+            return torch.optim.SGD([
+                {'params': self.model.parameters()},
+                {'params': self.likelihood.parameters()}
+            ], lr=lr)
+        elif self._optimizer == 'RMSprop':
+            return torch.optim.RMSprop([
+                {'params': self.model.parameters()},
+                {'params': self.likelihood.parameters()}
+            ], lr=lr)
+        elif self._optimizer == 'Adadelta':
+            return torch.optim.Adadelta([
+                {'params': self.model.parameters()},
+                {'params': self.likelihood.parameters()}
+            ], lr=lr)
+        elif self._optimizer == 'Adagrad':
+            return torch.optim.Adagrad([
+                {'params': self.model.parameters()},
+                {'params': self.likelihood.parameters()}
+            ], lr=lr)
         else:
             raise ValueError
 
