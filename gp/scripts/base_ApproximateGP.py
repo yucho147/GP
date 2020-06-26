@@ -165,16 +165,21 @@ class RunApproximateGP(object):
                 ex_var_dim=None
             ).to(self.device)
 
-        if self._mll == 'VariationalELBO':
-            # ここで上記周辺化のインスタンスを立てる
+        # mllのインスタンスを立てる
+        if self._mll in {'VariationalELBO', 'VELBO'}:
             self.mll = gpytorch.mlls.VariationalELBO(
                 self.likelihood,
                 self.model,
                 num_data=train_y.size(0)
             )
-        elif self._mll == 'PredictiveLogLikelihood':
-            # ここで上記周辺化のインスタンスを立てる
+        elif self._mll in {'PredictiveLogLikelihood', 'PLL'}:
             self.mll = gpytorch.mlls.PredictiveLogLikelihood(
+                self.likelihood,
+                self.model,
+                num_data=train_y.size(0)
+            )
+        elif self._mll in {'GammaRobustVariationalELBO', 'GRVELBO'}:
+            self.mll = gpytorch.mlls.GammaRobustVariationalELBO(
                 self.likelihood,
                 self.model,
                 num_data=train_y.size(0)
@@ -182,8 +187,8 @@ class RunApproximateGP(object):
         else:
             raise ValueError
 
+        # optimizerのインスタンスを立てる
         if self._optimizer == 'Adam':
-            # ここで損失関数のインスタンスを立てる
             self.optimizer = torch.optim.Adam([
                 {'params': self.model.parameters()},
                 {'params': self.likelihood.parameters()}
