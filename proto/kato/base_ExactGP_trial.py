@@ -171,20 +171,26 @@ class RunExactGP(object):
         else:
             raise ValueError
 
-    def fit(self, epochs, verbose=True):
+    def fit(self, epochs, test_dataloader=None, verbose=True):
         """学習用メソッド
 
         Parameters
         ----------
         epochs : int
             エポック数
+        test_dataloader : :obj:`torch.utils.data.DataLoader`, default None
+            テストデータをまとめたデータローダー
+
+            もし test_dataloader を設定している場合エポックごとにテストデータに対するlossも表示されるように設定される
         verbose : bool, default True
             表示形式
         """
-        self.model.train()
-        self.likelihood.train()
         for epoch in range(epochs):
-            # TODO : train_loss, test_loss を別々にする
+            # DONE : train_loss, test_loss を別々にする
+            train_loss = []
+            test_loss = []
+            self.model.train()     
+            self.likelihood.train()
             self.optimizer.zero_grad()
             # 今回のみの処理な気がする([0]のところ)
             output = self.model(self.model.train_inputs[0])
@@ -192,12 +198,28 @@ class RunExactGP(object):
             loss.backward()
             self.optimizer.step()
 
-            self.loss.append(loss.item()) # TODO : train_lossに変更
+            self.loss.append(loss.item()) # DONE : train_lossに変更
+            train_loss.append(loss.item())
+
             # TODO : test_loss について処理を行う
+            self.model.eval()     
+            self.likelihood.eval()
+            if test_dataloader is not None: # TODO : dataloaderという形式がいるのか？確認
+                with torch.no_grad():
+                    output = self.model(x_batch)
+                    loss = - self.mll(output, y_batch)
+                    test_loss.append(loss.item())
 
             if epoch % (epochs//10) == 0 and verbose:
-                # test_loss があるかどうかの分岐
-                print(f'Epoch {epoch + 1}/{epochs} - Loss: {loss.item():.3f}')
+                if test_loss:
+                    print(f'Epoch {epoch + 1}/{epochs} - Train Loss: {np.mean(train_loss):.3f} / Test Loss: {np.mean(test_loss):.3f}')
+                else:
+                    print(f'Epoch {epoch + 1}/{epochs} - Train Loss: {np.mean(train_loss):.3f}')
+        # TODO: 追加学習のために再学習の際、self.epochを利用する形にする
+            
+            # if epoch % (epochs//10) == 0 and verbose:
+            #     # test_loss があるかどうかの分岐
+            #     print(f'Epoch {epoch + 1}/{epochs} - Loss: {loss.item():.3f}')
         # TODO: 追加学習のために再学習の際、self.epochを利用する形にする
         self.epoch = epoch + 1
 
