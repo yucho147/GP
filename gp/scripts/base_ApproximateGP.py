@@ -100,8 +100,44 @@ class RunApproximateGP(object):
     def _set_likelihood(self):
         """likelihoodとしてself._likelihoodの指示の元、インスタンスを立てるメソッド
         """
-        if self._likelihood == 'GaussianLikelihood':
+        if self._likelihood in {'GaussianLikelihood', 'GL'}:
             self.likelihood = gpytorch.likelihoods.GaussianLikelihood().to(self.device)
+        else:
+            raise ValueError
+
+    def _set_mll(self, num_data):
+        """mllとしてself._mllの指示の元、インスタンスを立てるメソッド
+        """
+        # mllのインスタンスを立てる
+        if self._mll in {'VariationalELBO', 'VELBO'}:
+            return gpytorch.mlls.VariationalELBO(
+                self.likelihood,
+                self.model,
+                num_data=num_data
+            )
+        elif self._mll in {'PredictiveLogLikelihood', 'PLL'}:
+            return gpytorch.mlls.PredictiveLogLikelihood(
+                self.likelihood,
+                self.model,
+                num_data=num_data
+            )
+        elif self._mll in {'GammaRobustVariationalELBO', 'GRVELBO'}:
+            return gpytorch.mlls.GammaRobustVariationalELBO(
+                self.likelihood,
+                self.model,
+                num_data=num_data
+            )
+        else:
+            raise ValueError
+
+    def _set_optimizer(self, lr):
+        """optimizerとしてself._optimizerの指示の元、インスタンスを立てるメソッド
+        """
+        if self._optimizer == 'Adam':
+            return torch.optim.Adam([
+                {'params': self.model.parameters()},
+                {'params': self.likelihood.parameters()}
+            ], lr=lr)
         else:
             raise ValueError
 
@@ -165,36 +201,12 @@ class RunApproximateGP(object):
                 ex_var_dim=None
             ).to(self.device)
 
+        num_data = train_y.size(0)
         # mllのインスタンスを立てる
-        if self._mll in {'VariationalELBO', 'VELBO'}:
-            self.mll = gpytorch.mlls.VariationalELBO(
-                self.likelihood,
-                self.model,
-                num_data=train_y.size(0)
-            )
-        elif self._mll in {'PredictiveLogLikelihood', 'PLL'}:
-            self.mll = gpytorch.mlls.PredictiveLogLikelihood(
-                self.likelihood,
-                self.model,
-                num_data=train_y.size(0)
-            )
-        elif self._mll in {'GammaRobustVariationalELBO', 'GRVELBO'}:
-            self.mll = gpytorch.mlls.GammaRobustVariationalELBO(
-                self.likelihood,
-                self.model,
-                num_data=train_y.size(0)
-            )
-        else:
-            raise ValueError
+        self.mll = self._set_mll(num_data)
 
         # optimizerのインスタンスを立てる
-        if self._optimizer == 'Adam':
-            self.optimizer = torch.optim.Adam([
-                {'params': self.model.parameters()},
-                {'params': self.likelihood.parameters()}
-            ], lr=lr)
-        else:
-            raise ValueError
+        self.optimizer = self._set_optimizer(lr)
 
     def fit(self,
             epochs,
