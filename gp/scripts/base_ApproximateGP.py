@@ -14,7 +14,8 @@ from gp.utils.utils import (check_device,
                             tensor_to_array,
                             array_to_tensor,
                             load_model,
-                            save_model)
+                            save_model,
+                            set_kernel)
 
 
 class ApproximateGPModel(ApproximateGP):
@@ -54,62 +55,7 @@ class ApproximateGPModel(ApproximateGP):
         self.mean_module = gpytorch.means.ConstantMean()
         _ker_conf = {'ard_num_dims': ex_var_dim}
         _ker_conf.update(ker_conf)
-        self.covar_module = self._set_kernel(kernel, **_ker_conf)
-        # self.covar_module = gpytorch.kernels.ScaleKernel(
-        #     gpytorch.kernels.RBFKernel(ard_num_dims=ex_var_dim)
-        # )
-
-    def _set_kernel(self, kernel, **kwargs):
-        """kernelsを指定する
-
-        Parameters
-        ----------
-        kernel : str or :obj:`gpytorch.kernels`
-            使用するカーネル関数を指定する
-
-            基本はstrで指定されることを想定しているものの、自作のカーネル関数を入力することも可能
-
-        **kwargs : dict
-            カーネル関数に渡す設定
-
-        Returns
-        -------
-        out : :obj:`gpytorch.kernels`
-            カーネル関数のインスタンス
-        """
-        if isinstance(kernel, str):
-            if kernel in {'CosineKernel'}:
-                return gpytorch.kernels.ScaleKernel(
-                    gpytorch.kernels.CosineKernel(**kwargs)
-                )
-            elif kernel in {'LinearKernel'}:
-                return gpytorch.kernels.ScaleKernel(
-                    gpytorch.kernels.LinearKernel(**kwargs)
-                    )
-            elif kernel in {'MaternKernel'}:
-                return gpytorch.kernels.ScaleKernel(
-                    gpytorch.kernels.MaternKernel(**kwargs)
-                    )
-            # TODO: PeriodicKernelはコレスキー分解をvariational strategyに指定できない?
-            # elif kernel in {'PeriodicKernel'}:
-            #     return gpytorch.kernels.ScaleKernel(
-            #         gpytorch.kernels.PeriodicKernel(**kwargs)
-            #         )
-            elif kernel in {'RBFKernel'}:
-                return gpytorch.kernels.ScaleKernel(
-                    gpytorch.kernels.RBFKernel(**kwargs)
-                )
-            elif kernel in {'RQKernel'}:
-                return gpytorch.kernels.ScaleKernel(
-                    gpytorch.kernels.RQKernel(**kwargs)
-                )
-            elif kernel in {'SpectralMixtureKernel'}:
-                # SpectralMixtureKernelはScaleKernelを使えない
-                return gpytorch.kernels.SpectralMixtureKernel(**kwargs)
-            else:
-                raise ValueError
-        elif gpytorch.kernels.__name__ in str(type(kernel)):
-            return kernel
+        self.covar_module = set_kernel(kernel, **_ker_conf)
 
     def forward(self, x):
         mean_x = self.mean_module(x)

@@ -2,15 +2,16 @@
 # なんか諸々便利であろう関数を作ったらここで呼び出す感じで ####################
 ###############################################################################
 
+from attrdict import AttrDict
+from pathlib import Path
 import csv
+import logging
 import os
 import time
-import yaml
-import logging
-from pathlib import Path
-from attrdict import AttrDict
 import urllib.request
+import yaml
 
+import gpytorch
 import numpy as np
 import pandas as pd
 import torch
@@ -243,3 +244,56 @@ def load_model(file_path, *, epoch, model, likelihood, mll, optimizer, loss):
     loss = temp['loss']
 
     return epoch, model, likelihood, mll, optimizer, loss
+
+
+def set_kernel(kernel, **kwargs):
+    """kernelsを指定する
+
+    Parameters
+    ----------
+    kernel : str or :obj:`gpytorch.kernels`
+        使用するカーネル関数を指定する
+
+        基本はstrで指定されることを想定しているものの、自作のカーネル関数を入力することも可能
+
+    **kwargs : dict
+        カーネル関数に渡す設定
+
+    Returns
+    -------
+    out : :obj:`gpytorch.kernels`
+        カーネル関数のインスタンス
+    """
+    if isinstance(kernel, str):
+        if kernel in {'CosineKernel'}:
+            return gpytorch.kernels.ScaleKernel(
+                gpytorch.kernels.CosineKernel(**kwargs)
+            )
+        elif kernel in {'LinearKernel'}:
+            return gpytorch.kernels.ScaleKernel(
+                gpytorch.kernels.LinearKernel(**kwargs)
+                )
+        elif kernel in {'MaternKernel'}:
+            return gpytorch.kernels.ScaleKernel(
+                gpytorch.kernels.MaternKernel(**kwargs)
+                )
+        # TODO: PeriodicKernelはコレスキー分解をvariational strategyに指定できない?
+        # elif kernel in {'PeriodicKernel'}:
+        #     return gpytorch.kernels.ScaleKernel(
+        #         gpytorch.kernels.PeriodicKernel(**kwargs)
+        #         )
+        elif kernel in {'RBFKernel'}:
+            return gpytorch.kernels.ScaleKernel(
+                gpytorch.kernels.RBFKernel(**kwargs)
+            )
+        elif kernel in {'RQKernel'}:
+            return gpytorch.kernels.ScaleKernel(
+                gpytorch.kernels.RQKernel(**kwargs)
+            )
+        elif kernel in {'SpectralMixtureKernel'}:
+            # SpectralMixtureKernelはScaleKernelを使えない
+            return gpytorch.kernels.SpectralMixtureKernel(**kwargs)
+        else:
+            raise ValueError
+    elif gpytorch.kernels.__name__ in str(type(kernel)):
+        return kernel
