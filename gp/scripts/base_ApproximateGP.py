@@ -77,17 +77,22 @@ class RunApproximateGP(object):
         ARDカーネルを利用するかが指定される
 
         もし :obj:`RunApproximateGP.kernel_coeff` を利用する場合 `ard_option=True` を選択する
+    mll_conf : dict, default dict()
+        mllに渡す設定一覧辞書
+    opt_conf : dict, default dict()
+        optimizerに渡す設定一覧辞書
     """
     def __init__(self,
                  inducing_points_num=0.5,
                  likelihood='GaussianLikelihood',
                  optimizer='Adam',
                  mll='VariationalELBO',
-                 ard_option=True):
+                 ard_option=True,
+                 mll_conf=dict(),
+                 opt_conf=dict()):
         self.device = check_device()
         self.inducing_points_num = inducing_points_num
         self._likelihood = likelihood
-        self._set_likelihood()
         self._optimizer = optimizer
         self._mll = mll
         self.ard_option = ard_option
@@ -95,13 +100,74 @@ class RunApproximateGP(object):
         self.model = None  # 空のmodelを作成しないとloadできない
         self.mll = None    # 空のmodelを作成しないとloadできない
         self.optimizer = None  # 空のmodelを作成しないとloadできない
+        self._mll_conf = mll_conf
+        self._opt_conf = opt_conf
         self.loss = []
 
     def _set_likelihood(self):
         """likelihoodとしてself._likelihoodの指示の元、インスタンスを立てるメソッド
         """
-        if self._likelihood == 'GaussianLikelihood':
-            self.likelihood = gpytorch.likelihoods.GaussianLikelihood().to(self.device)
+        if self._likelihood in {'GaussianLikelihood', 'GL'}:
+            return gpytorch.likelihoods.GaussianLikelihood().to(self.device)
+        else:
+            raise ValueError
+
+    def _set_mll(self, num_data, mll_conf):
+        """mllとしてself._mllの指示の元、インスタンスを立てるメソッド
+        """
+        # mllのインスタンスを立てる
+        if self._mll in {'VariationalELBO', 'VELBO'}:
+            return gpytorch.mlls.VariationalELBO(
+                self.likelihood,
+                self.model,
+                num_data=num_data,
+                **mll_conf
+            )
+        elif self._mll in {'PredictiveLogLikelihood', 'PLL'}:
+            return gpytorch.mlls.PredictiveLogLikelihood(
+                self.likelihood,
+                self.model,
+                num_data=num_data,
+                **mll_conf
+            )
+        elif self._mll in {'GammaRobustVariationalELBO', 'GRVELBO'}:
+            return gpytorch.mlls.GammaRobustVariationalELBO(
+                self.likelihood,
+                self.model,
+                num_data=num_data,
+                **mll_conf
+            )
+        else:
+            raise ValueError
+
+    def _set_optimizer(self, lr, opt_conf):
+        """optimizerとしてself._optimizerの指示の元、インスタンスを立てるメソッド
+        """
+        if self._optimizer == 'Adam':
+            return torch.optim.Adam([
+                {'params': self.model.parameters()},
+                {'params': self.likelihood.parameters()}
+            ], lr=lr, **opt_conf)
+        elif self._optimizer == 'SGD':
+            return torch.optim.SGD([
+                {'params': self.model.parameters()},
+                {'params': self.likelihood.parameters()}
+            ], lr=lr, **opt_conf)
+        elif self._optimizer == 'RMSprop':
+            return torch.optim.RMSprop([
+                {'params': self.model.parameters()},
+                {'params': self.likelihood.parameters()}
+            ], lr=lr, **opt_conf)
+        elif self._optimizer == 'Adadelta':
+            return torch.optim.Adadelta([
+                {'params': self.model.parameters()},
+                {'params': self.likelihood.parameters()}
+            ], lr=lr, **opt_conf)
+        elif self._optimizer == 'Adagrad':
+            return torch.optim.Adagrad([
+                {'params': self.model.parameters()},
+                {'params': self.likelihood.parameters()}
+            ], lr=lr, **opt_conf)
         else:
             raise ValueError
 
@@ -111,7 +177,9 @@ class RunApproximateGP(object):
                   lr=1e-3,
                   batch_size=128,
                   shuffle=True,
-                  ard_option=None):
+                  ard_option=None,
+                  mll_conf=None,
+                  opt_conf=None):
         """使用するモデルのインスタンスを立てるメソッド
 
         Parameters
@@ -128,6 +196,10 @@ class RunApproximateGP(object):
             学習データをシャッフルしてミニバッチ学習させるかを設定
         ard_option : bool, default None
             ARDカーネルを利用するかが指定される
+        mll_conf : dict, default dict()
+            mllに渡す設定一覧辞書
+        opt_conf : dict, default dict()
+            optimizerに渡す設定一覧辞書
         """
         if type(train_x) == np.ndarray:
             train_x = array_to_tensor(train_x)
@@ -165,31 +237,19 @@ class RunApproximateGP(object):
                 ex_var_dim=None
             ).to(self.device)
 
-        if self._mll == 'VariationalELBO':
-            # ここで上記周辺化のインスタンスを立てる
-            self.mll = gpytorch.mlls.VariationalELBO(
-                self.likelihood,
-                self.model,
-                num_data=train_y.size(0)
-            )
-        elif self._mll == 'PredictiveLogLikelihood':
-            # ここで上記周辺化のインスタンスを立てる
-            self.mll = gpytorch.mlls.PredictiveLogLikelihood(
-                self.likelihood,
-                self.model,
-                num_data=train_y.size(0)
-            )
-        else:
-            raise ValueError
+        # likelihoodのインスタンスを立てる
+        self.likelihood = self._set_likelihood()
 
-        if self._optimizer == 'Adam':
-            # ここで損失関数のインスタンスを立てる
-            self.optimizer = torch.optim.Adam([
-                {'params': self.model.parameters()},
-                {'params': self.likelihood.parameters()}
-            ], lr=lr)
-        else:
-            raise ValueError
+        # mllのインスタンスを立てる
+        num_data = train_y.size(0)
+        if mll_conf is None:
+            mll_conf = self._mll_conf
+        self.mll = self._set_mll(num_data, mll_conf=mll_conf)
+
+        # optimizerのインスタンスを立てる
+        if opt_conf is None:
+            opt_conf = self._opt_conf
+        self.optimizer = self._set_optimizer(lr, opt_conf=opt_conf)
 
     def fit(self,
             epochs,
