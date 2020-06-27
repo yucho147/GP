@@ -33,8 +33,14 @@ class ApproximateGPModel(ApproximateGP):
 
         `ex_var_dim=None` を指定すると計算は速くなるものの、説明変数ごとの重みの縮退はとけない。
         結果、一般的に精度は落ちることが考えられる。
+    kernel : str or :obj:`gpytorch.kernels`
+        使用するカーネル関数を指定する
+
+        基本はstrで指定されることを想定しているものの、自作のカーネル関数を入力することも可能
+    **ker_conf : dict
+        カーネル関数に渡す設定
     """
-    def __init__(self, inducing_points, ex_var_dim):
+    def __init__(self, inducing_points, ex_var_dim, kernel, **ker_conf):
         variational_distribution = CholeskyVariationalDistribution(
             inducing_points.size(0)
         )
@@ -46,9 +52,64 @@ class ApproximateGPModel(ApproximateGP):
         )
         super(ApproximateGPModel, self).__init__(variational_strategy)
         self.mean_module = gpytorch.means.ConstantMean()
-        self.covar_module = gpytorch.kernels.ScaleKernel(
-            gpytorch.kernels.RBFKernel(ard_num_dims=ex_var_dim)
-        )
+        _ker_conf = {'ard_num_dims': ex_var_dim}
+        _ker_conf.update(ker_conf)
+        self.covar_module = self._set_kernel(kernel, **_ker_conf)
+        # self.covar_module = gpytorch.kernels.ScaleKernel(
+        #     gpytorch.kernels.RBFKernel(ard_num_dims=ex_var_dim)
+        # )
+
+    def _set_kernel(self, kernel, **kwargs):
+        """kernelsを指定する
+
+        Parameters
+        ----------
+        kernel : str or :obj:`gpytorch.kernels`
+            使用するカーネル関数を指定する
+
+            基本はstrで指定されることを想定しているものの、自作のカーネル関数を入力することも可能
+
+        **kwargs : dict
+            カーネル関数に渡す設定
+
+        Returns
+        -------
+        out : :obj:`gpytorch.kernels`
+            カーネル関数のインスタンス
+        """
+        if isinstance(kernel, str):
+            if kernel in {'CosineKernel'}:
+                return gpytorch.kernels.ScaleKernel(
+                    gpytorch.kernels.CosineKernel(**kwargs)
+                )
+            elif kernel in {'LinearKernel'}:
+                return gpytorch.kernels.ScaleKernel(
+                    gpytorch.kernels.LinearKernel(**kwargs)
+                    )
+            elif kernel in {'MaternKernel'}:
+                return gpytorch.kernels.ScaleKernel(
+                    gpytorch.kernels.MaternKernel(**kwargs)
+                    )
+            # TODO: PeriodicKernelはコレスキー分解をvariational strategyに指定できない?
+            # elif kernel in {'PeriodicKernel'}:
+            #     return gpytorch.kernels.ScaleKernel(
+            #         gpytorch.kernels.PeriodicKernel(**kwargs)
+            #         )
+            elif kernel in {'RBFKernel'}:
+                return gpytorch.kernels.ScaleKernel(
+                    gpytorch.kernels.RBFKernel(**kwargs)
+                )
+            elif kernel in {'RQKernel'}:
+                return gpytorch.kernels.ScaleKernel(
+                    gpytorch.kernels.RQKernel(**kwargs)
+                )
+            elif kernel in {'SpectralMixtureKernel'}:
+                # SpectralMixtureKernelはScaleKernelを使えない
+                return gpytorch.kernels.SpectralMixtureKernel(**kwargs)
+            else:
+                raise ValueError
+        elif gpytorch.kernels.__name__ in str(type(kernel)):
+            return kernel
 
     def forward(self, x):
         mean_x = self.mean_module(x)
@@ -67,6 +128,10 @@ class RunApproximateGP(object):
         補助変数の個数(int)
 
         もし 0 < inducing_points_num < 1 が渡された場合学習用データの len と inducing_points_num の積が補助変数の個数として設定される
+    kernel : str or :obj:`gpytorch.kernels`, default 'RBFKernel
+        使用するカーネル関数を指定する
+
+        基本はstrで指定されることを想定しているものの、自作のカーネル関数を入力することも可能
     likelihood : str, default 'GaussianLikelihood'
         likelihoodとして使用するクラス名が指定される
     optimizer : str, default 'Adam'
@@ -77,6 +142,8 @@ class RunApproximateGP(object):
         ARDカーネルを利用するかが指定される
 
         もし :obj:`RunApproximateGP.kernel_coeff` を利用する場合 `ard_option=True` を選択する
+    ker_conf : dict, default dict()
+        カーネル関数に渡す設定一覧辞書
     mll_conf : dict, default dict()
         mllに渡す設定一覧辞書
     opt_conf : dict, default dict()
@@ -84,14 +151,17 @@ class RunApproximateGP(object):
     """
     def __init__(self,
                  inducing_points_num=0.5,
+                 kernel='RBFKernel',
                  likelihood='GaussianLikelihood',
                  optimizer='Adam',
                  mll='VariationalELBO',
                  ard_option=True,
+                 ker_conf=dict(),
                  mll_conf=dict(),
                  opt_conf=dict()):
         self.device = check_device()
         self.inducing_points_num = inducing_points_num
+        self._kernel = kernel
         self._likelihood = likelihood
         self._optimizer = optimizer
         self._mll = mll
@@ -100,6 +170,7 @@ class RunApproximateGP(object):
         self.model = None  # 空のmodelを作成しないとloadできない
         self.mll = None    # 空のmodelを作成しないとloadできない
         self.optimizer = None  # 空のmodelを作成しないとloadできない
+        self._ker_conf = ker_conf
         self._mll_conf = mll_conf
         self._opt_conf = opt_conf
         self.loss = []
@@ -177,7 +248,9 @@ class RunApproximateGP(object):
                   lr=1e-3,
                   batch_size=128,
                   shuffle=True,
+                  kernel=None,
                   ard_option=None,
+                  ker_conf=None,
                   mll_conf=None,
                   opt_conf=None):
         """使用するモデルのインスタンスを立てるメソッド
@@ -194,8 +267,14 @@ class RunApproximateGP(object):
             バッチ数
         shffle : bool, default True
             学習データをシャッフルしてミニバッチ学習させるかを設定
+        kernel : str or :obj:`gpytorch.kernels`, default 'RBFKernel
+            使用するカーネル関数を指定する
+
+            基本はstrで指定されることを想定しているものの、自作のカーネル関数を入力することも可能
         ard_option : bool, default None
             ARDカーネルを利用するかが指定される
+        ker_conf : dict, default dict()
+            kernelに渡す設定一覧辞書
         mll_conf : dict, default dict()
             mllに渡す設定一覧辞書
         opt_conf : dict, default dict()
@@ -225,16 +304,28 @@ class RunApproximateGP(object):
                                        batch_size=batch_size,
                                        shuffle=shuffle)
 
+        if kernel is None:
+            kernel = self._kernel
+        if ker_conf is None:
+            ker_conf = self._ker_conf
+        if kernel == 'SpectralMixtureKernel':
+            # SpectralMixtureKernelは必ずnum_mixturesと(ミニバッチ学習の場合)batch_sizeが必要となる
+            ker_conf['num_mixtures'] = ker_conf.get('num_mixtures', 4)
+            ker_conf.update({'batch_size': batch_size})
         # ここで上記モデルのインスタンスを立てる
         if ard_option:
             self.model = ApproximateGPModel(
                 inducing_points,
-                ex_var_dim=ex_var_dim
+                kernel=kernel,
+                ex_var_dim=ex_var_dim,
+                **ker_conf
             ).to(self.device)
         else:
             self.model = ApproximateGPModel(
                 inducing_points,
-                ex_var_dim=None
+                kernel=kernel,
+                ex_var_dim=None,
+                **ker_conf,
             ).to(self.device)
 
         # likelihoodのインスタンスを立てる
