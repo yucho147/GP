@@ -300,50 +300,33 @@ class RunExactGP(object):
 
 
 def main():
-    num = 1500
-    date_time = np.arange(num)
-    input_1 = np.sin(np.arange(num) * 0.05) + np.random.randn(num) / 6
-    input_2 = np.sin(np.arange(num) * 0.05 / 1.5) + input_1 + np.random.randn(num) / 6
-    input_3 = np.cos(np.arange(num) * 0.05 / 2) + input_2
-    input_3 = input_3 + np.random.randn(num) / 2 * input_3  # 自分自身の値が大きいと誤差項が大きくなるように設定
-    step = 10
-    data = np.array([date_time[:-step], input_1[:-step], input_2[:-step], input_3[:-step], input_3[step:]]).T
+    # GPでは入力は多次元前提なので (num_data, dim) という shape
+    # 一方で出力は一次元前提なので (num_data) という形式にする
+    train_inputs = np.linspace(0, 1, 10).reshape(10, 1)
+    train_targets = np.sin(2*np.pi*train_inputs).reshape(10) \
+        + 0.3*np.random.randn(10)
 
-    train_n = int(floor(0.9 * len(data)))
-    train_inputs = data[:train_n, 1:-1]
-    train_targets = data[:train_n, -1]
-
-    test_inputs = data[train_n:, 1:-1]
-    test_targets = data[train_n:, -1]
-
-    test_dataset = TensorDataset(array_to_tensor(test_inputs),
-                                 array_to_tensor(test_targets))
-    test_loader = DataLoader(test_dataset,
-                             batch_size=500)
-
-    run = RunExactGP(mll='PredictiveLogLikelihood')
-    run.set_model(train_inputs, train_targets, lr=3e-2, batch_size=10)
-    run.fit(10, test_dataloader=test_loader, verbose=True)
-    # test_dataloaderにDataLoaderを渡せば、val lossも出力されるようになる
-    # もしない場合にはtrainのlossのみが出力される
+    run = RunExactGP()
+    run.set_model(train_inputs, train_targets)
+    run.fit(2000, verbose=True)
     run.save('test.pth')        # モデルをsave
     run.load('test.pth')        # モデルをload
 
+    test_inputs = np.linspace(-0.2, 1.2, 100)
     predicts, (predicts_mean, predicts_std) = run.predict(test_inputs)
 
     # plotはまだ未実装
     plt.style.use('seaborn-darkgrid')
-    plt.plot(data[train_n:, 0], predicts_mean, label='predicts', linewidth=2)
-    plt.plot(data[train_n:, 0], test_targets, label='true value', linewidth=1)
+    plt.plot(test_inputs, predicts_mean)
+    plt.plot(test_inputs, predicts_mean - predicts_std, color='orange')
+    plt.plot(test_inputs, predicts_mean + predicts_std, color='orange')
     plt.fill_between(
-        data[train_n:, 0],
+        test_inputs,
         predicts_mean - predicts_std,
         predicts_mean + predicts_std,
-        alpha=0.6,
-        label='var'
+        alpha=0.4
     )
-    plt.title(f'step={step}')
-    plt.legend()
+    plt.plot(train_inputs, train_targets, "ro")
     plt.show()
 
 
