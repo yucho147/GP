@@ -69,6 +69,8 @@ class RunExactGP(object):
 
     Parameters
     ----------
+    kernel : str or :obj:`gpytorch.kernels`, default 'RBFKernel
+        使用するカーネル関数を指定する
     likelihood : str
         likelihoodとして使用するクラス名が指定される
     optimizer : str
@@ -79,6 +81,12 @@ class RunExactGP(object):
         ARDカーネルを利用するかが指定される
 
         もし :obj:`RunApproximateGP.kernel_coeff` を利用する場合 `ard_option=True` を選択する
+    ker_conf : dict, default dict()
+        カーネル関数に渡す設定一覧辞書
+    mll_conf : dict, default dict()
+        mllに渡す設定一覧辞書
+    opt_conf : dict, default dict()
+        optimizerに渡す設定一覧辞書
     """
     def __init__(self,
                  kernel='RBFKernel',
@@ -260,7 +268,7 @@ class RunExactGP(object):
 
             self.model.eval()     
             self.likelihood.eval()
-            if all([test_x, test_y]) is not None:
+            if test_x is not None and test_y is not None:
                 with torch.no_grad():
                     output = self.model(test_x)
                     loss = - self.mll(output, test_y)
