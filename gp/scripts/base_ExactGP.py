@@ -4,8 +4,6 @@ import random
 
 import gpytorch
 from gpytorch.models import ExactGP
-# from gpytorch.variational import CholeskyVariationalDistribution
-# from gpytorch.variational import VariationalStrategy
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
@@ -17,8 +15,7 @@ from gp.utils.utils import (array_to_tensor,
                             load_model,
                             save_model,
                             set_kernel,
-                            tensor_to_array
-                            )
+                            tensor_to_array)
 
 class ExactGPModel(ExactGP):
     """ExactGP用のモデル定義クラス
@@ -72,12 +69,6 @@ class RunExactGP(object):
 
     Parameters
     ----------
-    l_prior : :obj:`gpytorch.priors.NormalPrior`
-        RBFKernelのexpの肩の分母を指すパラメータ
-
-        どの程度離れた点の影響を考慮するかを調整するパラメータとなる
-    s_prior : :obj:`gpytorch.priors.NormalPrior`
-        RBFKernelの係数を指すパラメータ
     likelihood : str
         likelihoodとして使用するクラス名が指定される
     optimizer : str
@@ -229,27 +220,29 @@ class RunExactGP(object):
         # optimizerのインスタンスを立てる
         if opt_conf is None:
             opt_conf = self._opt_conf
-        print(self.model.parameters())
-        print()
-        print(self.likelihood.parameters())
         self.optimizer = self._set_optimizer(lr, opt_conf=opt_conf)
 
-    def fit(self, epochs, test_inputs=None, verbose=True):
+    def fit(self, epochs, test_x=None, test_y=None, verbose=True):
         """学習用メソッド
 
         Parameters
         ----------
         epochs : int
             エポック数
-        test_inputs : np.ndarray or torch.tensor, default None
-            テストデータ
+        test_x : np.ndarray or torch.tensor, default None
+            説明変数のテストデータ
+        test_y : np.ndarray or torch.tensor, default None
+            目的変数のテストデータ
 
-            もし test_inputs を設定している場合エポックごとにテストデータに対するlossも表示されるように設定される
+            もし test_x, test_y を設定している場合エポックごとにテストデータに対するlossも表示されるように設定される
         verbose : bool, default True
             表示形式
         """
-        if type(test_inputs) == np.ndarray:
-             test_inputs = array_to_tensor(test_inputs)
+        if type(test_x) == np.ndarray:
+             test_x = array_to_tensor(test_x)
+        if type(test_y) == np.ndarray:
+             test_y = array_to_tensor(test_y)
+        
         for epoch in range(epochs):
             train_loss = []
             test_loss = []
@@ -267,10 +260,10 @@ class RunExactGP(object):
 
             self.model.eval()     
             self.likelihood.eval()
-            if test_inputs is not None:
+            if test_x is not None and test_y is not None:
                 with torch.no_grad():
-                    output = self.model(self.model.test_inputs[0])
-                    loss = - self.mll(output, self.model.test_targets)
+                    output = self.model(test_x)
+                    loss = - self.mll(output, test_y)
                     test_loss.append(loss.item())
 
             if epoch % (epochs//10) == 0 and verbose:
@@ -363,23 +356,25 @@ def main():
     train_inputs = np.linspace(0, 1, 10).reshape(10, 1)
     train_targets = np.sin(2*np.pi*train_inputs).reshape(10) \
         + 0.3*np.random.randn(10)
+    test_x = np.linspace(-0.2, 1.2, 100)
+    test_y = np.sin(2*np.pi*test_x).reshape(100) \
+        + 0.3*np.random.randn(100)
 
     run = RunExactGP()
     run.set_model(train_inputs, train_targets)
-    run.fit(2000, verbose=True)
+    run.fit(2000, test_x, test_y, verbose=True)
     run.save('test.pth')        # モデルをsave
     run.load('test.pth')        # モデルをload
 
-    test_inputs = np.linspace(-0.2, 1.2, 100)
-    predicts, (predicts_mean, predicts_std) = run.predict(test_inputs)
+    predicts, (predicts_mean, predicts_std) = run.predict(test_x)
 
     # plotはまだ未実装
     plt.style.use('seaborn-darkgrid')
-    plt.plot(test_inputs, predicts_mean)
-    plt.plot(test_inputs, predicts_mean - predicts_std, color='orange')
-    plt.plot(test_inputs, predicts_mean + predicts_std, color='orange')
+    plt.plot(test_x, predicts_mean)
+    plt.plot(test_x, predicts_mean - predicts_std, color='orange')
+    plt.plot(test_x, predicts_mean + predicts_std, color='orange')
     plt.fill_between(
-        test_inputs,
+        test_x,
         predicts_mean - predicts_std,
         predicts_mean + predicts_std,
         alpha=0.4
