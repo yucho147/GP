@@ -19,25 +19,25 @@ from gp.utils.utils import (check_device,
 
 
 class ApproximateGPModel(ApproximateGP):
-    """ApproximateGP用のモデル定義クラス
+    """ApproximateGP用のモデル定義クラス
 
-    ApproximateGPを使用する場合、本クラスにてモデルを構築する(予定)
+    ApproximateGPを使用する場合、本クラスにてモデルを構築する(予定)
 
     Parameters
     ----------
     inducing_points : torch.tensor
         補助変数の座標
 
-        `learn_inducing_locations=True` である以上、ここで指定する補助変数は更新される
+        `learn_inducing_locations=True` である以上、ここで指定する補助変数は更新される
     ex_var_dim : int
         説明変数の個数
 
-        `ex_var_dim=None` を指定すると計算は速くなるものの、説明変数ごとの重みの縮退はとけない。
-        結果、一般的に精度は落ちることが考えられる。
+        `ex_var_dim=None` を指定すると計算は速くなるものの、説明変数ごとの重みの縮退はとけない。
+        結果、一般的に精度は落ちることが考えられる。
     kernel : str or :obj:`gpytorch.kernels`
         使用するカーネル関数を指定する
 
-        基本はstrで指定されることを想定しているものの、自作のカーネル関数を入力することも可能
+        基本はstrで指定されることを想定しているものの、自作のカーネル関数を入力することも可能
     **ker_conf : dict
         カーネル関数に渡す設定
     """
@@ -66,26 +66,26 @@ class ApproximateGPModel(ApproximateGP):
 class RunApproximateGP(object):
     """ApproximateGPModelの実行クラス
 
-    ApproximateGPModelをラップし、学習・予測・プロット等を司る
+    ApproximateGPModelをラップし、学習・予測・プロット等を司る
 
     Parameters
     ----------
     inducing_points_num : int or float
         補助変数の個数(int)
 
-        もし 0 < inducing_points_num < 1 が渡された場合学習用データの len と inducing_points_num の積が補助変数の個数として設定される
+        もし 0 < inducing_points_num < 1 が渡された場合学習用データの len と inducing_points_num の積が補助変数の個数として設定される
     kernel : str or :obj:`gpytorch.kernels`, default 'RBFKernel
         使用するカーネル関数を指定する
 
-        基本はstrで指定されることを想定しているものの、自作のカーネル関数を入力することも可能
+        基本はstrで指定されることを想定しているものの、自作のカーネル関数を入力することも可能
     likelihood : str, default 'GaussianLikelihood'
-        likelihoodとして使用するクラス名が指定される
+        likelihoodとして使用するクラス名が指定される
     optimizer : str, default 'Adam'
-        optimizerとして使用するクラス名が指定される
+        optimizerとして使用するクラス名が指定される
     mll : str, default 'VariationalELBO'
-        確率分布の周辺化の方法のクラス名が指定される
+        確率分布の周辺化の方法のクラス名が指定される
     ard_option : bool, default True
-        ARDカーネルを利用するかが指定される
+        ARDカーネルを利用するかが指定される
 
         もし :obj:`RunApproximateGP.kernel_coeff` を利用する場合 `ard_option=True` を選択する
     ker_conf : dict, default dict()
@@ -113,16 +113,16 @@ class RunApproximateGP(object):
         self._mll = mll
         self.ard_option = ard_option
         self.epoch = 0
-        self.model = None  # 空のmodelを作成しないとloadできない
-        self.mll = None    # 空のmodelを作成しないとloadできない
-        self.optimizer = None  # 空のmodelを作成しないとloadできない
+        self.model = None  # 空のmodelを作成しないとloadできない
+        self.mll = None    # 空のmodelを作成しないとloadできない
+        self.optimizer = None  # 空のmodelを作成しないとloadできない
         self._ker_conf = ker_conf
         self._mll_conf = mll_conf
         self._opt_conf = opt_conf
         self.loss = []
 
     def _set_likelihood(self):
-        """likelihoodとしてself._likelihoodの指示の元、インスタンスを立てるメソッド
+        """likelihoodとしてself._likelihoodの指示の元、インスタンスを立てるメソッド
         """
         if self._likelihood in {'GaussianLikelihood', 'GL'}:
             return gpytorch.likelihoods.GaussianLikelihood().to(self.device)
@@ -130,7 +130,7 @@ class RunApproximateGP(object):
             raise ValueError
 
     def _set_mll(self, num_data, mll_conf):
-        """mllとしてself._mllの指示の元、インスタンスを立てるメソッド
+        """mllとしてself._mllの指示の元、インスタンスを立てるメソッド
         """
         # mllのインスタンスを立てる
         if self._mll in {'VariationalELBO', 'VELBO'}:
@@ -158,7 +158,7 @@ class RunApproximateGP(object):
             raise ValueError
 
     def _set_optimizer(self, lr, opt_conf):
-        """optimizerとしてself._optimizerの指示の元、インスタンスを立てるメソッド
+        """optimizerとしてself._optimizerの指示の元、インスタンスを立てるメソッド
         """
         if self._optimizer == 'Adam':
             return torch.optim.Adam([
@@ -199,26 +199,26 @@ class RunApproximateGP(object):
                   ker_conf=None,
                   mll_conf=None,
                   opt_conf=None):
-        """使用するモデルのインスタンスを立てるメソッド
+        """使用するモデルのインスタンスを立てるメソッド
 
         Parameters
         ----------
         train_x : np.array or torch.tensor
-            学習用データセットの説明変数
+            学習用データセットの説明変数
         train_y : np.array or torch.tensor
-            学習用データセットの目的変数
+            学習用データセットの目的変数
         lr : float
             学習率
         batch_size : int, default 128
-            バッチ数
+            バッチ数
         shffle : bool, default True
-            学習データをシャッフルしてミニバッチ学習させるかを設定
+            学習データをシャッフルしてミニバッチ学習させるかを設定
         kernel : str or :obj:`gpytorch.kernels`, default 'RBFKernel
             使用するカーネル関数を指定する
 
-            基本はstrで指定されることを想定しているものの、自作のカーネル関数を入力することも可能
+            基本はstrで指定されることを想定しているものの、自作のカーネル関数を入力することも可能
         ard_option : bool, default None
-            ARDカーネルを利用するかが指定される
+            ARDカーネルを利用するかが指定される
         ker_conf : dict, default dict()
             kernelに渡す設定一覧辞書
         mll_conf : dict, default dict()
@@ -255,10 +255,10 @@ class RunApproximateGP(object):
         if ker_conf is None:
             ker_conf = self._ker_conf
         if kernel == 'SpectralMixtureKernel':
-            # SpectralMixtureKernelは必ずnum_mixturesと(ミニバッチ学習の場合)batch_sizeが必要となる
+            # SpectralMixtureKernelは必ずnum_mixturesと(ミニバッチ学習の場合)batch_sizeが必要となる
             ker_conf['num_mixtures'] = ker_conf.get('num_mixtures', 4)
             ker_conf.update({'batch_size': batch_size})
-        # ここで上記モデルのインスタンスを立てる
+        # ここで上記モデルのインスタンスを立てる
         if ard_option:
             self.model = ApproximateGPModel(
                 inducing_points,
@@ -294,18 +294,18 @@ class RunApproximateGP(object):
             train_dataloader=None,
             test_dataloader=None,
             verbose=True):
-        """学習用メソッド
+        """学習用メソッド
 
         Parameters
         ----------
         epochs : int
-            エポック数
+            エポック数
         train_dataloader : :obj:`torch.utils.data.DataLoader`, default None
-            学習データをまとめたデータローダー
+            学習データをまとめたデータローダー
         test_dataloader : :obj:`torch.utils.data.DataLoader`, default None
-            テストデータをまとめたデータローダー
+            テストデータをまとめたデータローダー
 
-            もし test_dataloader を設定している場合エポックごとにテストデータに対するlossも表示されるように設定される
+            もし test_dataloader を設定している場合エポックごとにテストデータに対するlossも表示されるように設定される
         verbose : bool, default True
             表示形式
         """
@@ -344,7 +344,7 @@ class RunApproximateGP(object):
         self.epoch = epoch + 1
 
     def predict(self, X):
-        """予測用メソッド
+        """予測用メソッド
 
         Parameters
         ----------
@@ -354,9 +354,9 @@ class RunApproximateGP(object):
         Returns
         -------
         predicts : :obj:`gpytorch.distributions.multivariate_normal.MultivariateNormal`
-            予測された目的変数のオブジェクト
+            予測された目的変数のオブジェクト
 
-            likelihoodの__call__が呼び出されており、平均・標準偏差以外にも多くの要素で構成されている。
+            likelihoodの__call__が呼び出されており、平均・標準偏差以外にも多くの要素で構成されている。
         predicts_mean : np.array
             予測された目的変数の平均値
         predicts_std : np.array
@@ -373,12 +373,12 @@ class RunApproximateGP(object):
         return predicts, (predicts_mean, predicts_std)
 
     def save(self, file_path):
-        """モデルのsaveメソッド
+        """モデルのsaveメソッド
 
         Parameters
         ----------
         file_path : str
-            モデルの保存先のパスとファイル名
+            モデルの保存先のパスとファイル名
         """
         data = dict(
             epoch=self.epoch,
@@ -391,12 +391,12 @@ class RunApproximateGP(object):
         save_model(file_path, **data)
 
     def load(self, file_path):
-        """モデルのloadメソッド
+        """モデルのloadメソッド
 
         Parameters
         ----------
         file_path : str
-            モデルの保存先のパスとファイル名
+            モデルの保存先のパスとファイル名
         """
         data = dict(
             epoch=self.epoch,
@@ -409,25 +409,25 @@ class RunApproximateGP(object):
         self.epoch, self.model, self.likelihood, self.mll, self.optimizer, self.loss = load_model(file_path, **data)
 
     def kernel_coeff(self):
-        """kernelの係数を出力するメソッド
+        """kernelの係数を出力するメソッド
 
         Returns
         -------
         output_dict : dict
             カーネル関数の係数
 
-            `ard_option=True` の場合、 $\Theta$ が各々の説明変数ごとに重みを変えて更新され、出力される
+            `ard_option=True` の場合、 $\Theta$ が各々の説明変数ごとに重みを変えて更新され、出力される
 
         Warning
         --------
         RBFKernelの場合、各説明変数の重要度 $\eta$ は出力される `'base_kernel.raw_lengthscale'` の逆数の2乗に対応する
         """
-        # TODO: kernel関数をスイッチさせ、それに応じてわかりやすい形に変形する
+        # TODO: kernel関数をスイッチさせ、それに応じてわかりやすい形に変形する
         output_dict = self.model.covar_module.state_dict()
         return output_dict
 
     def plot(self):
-        # TODO: 何が必要か定めて、実装
+        # TODO: 何が必要か定めて、実装
         pass
 
     def get_params(self) -> dict:
@@ -441,7 +441,7 @@ def main():
     input_1 = np.sin(np.arange(num) * 0.05) + np.random.randn(num) / 6
     input_2 = np.sin(np.arange(num) * 0.05 / 1.5) + input_1 + np.random.randn(num) / 6
     input_3 = np.cos(np.arange(num) * 0.05 / 2) + input_2
-    input_3 = input_3 + np.random.randn(num) / 2 * input_3  # 自分自身の値が大きいと誤差項が大きくなるように設定
+    input_3 = input_3 + np.random.randn(num) / 2 * input_3  # 自分自身の値が大きいと誤差項が大きくなるように設定
     step = 10
     data = np.array([date_time[:-step], input_1[:-step], input_2[:-step], input_3[:-step], input_3[step:]]).T
 
@@ -460,14 +460,14 @@ def main():
     run = RunApproximateGP(mll='PredictiveLogLikelihood')
     run.set_model(train_inputs, train_targets, lr=3e-2, batch_size=10)
     run.fit(10, test_dataloader=test_loader, verbose=True)
-    # test_dataloaderにDataLoaderを渡せば、val lossも出力されるようになる
-    # もしない場合にはtrainのlossのみが出力される
-    run.save('test.pth')        # モデルをsave
-    run.load('test.pth')        # モデルをload
+    # test_dataloaderにDataLoaderを渡せば、val lossも出力されるようになる
+    # もしない場合にはtrainのlossのみが出力される
+    run.save('test.pth')        # モデルをsave
+    run.load('test.pth')        # モデルをload
 
     predicts, (predicts_mean, predicts_std) = run.predict(test_inputs)
 
-    # plotはまだ未実装
+    # plotはまだ未実装
     plt.style.use('seaborn-darkgrid')
     plt.plot(data[train_n:, 0], predicts_mean, label='predicts', linewidth=2)
     plt.plot(data[train_n:, 0], test_targets, label='true value', linewidth=1)
