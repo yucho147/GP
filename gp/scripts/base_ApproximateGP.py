@@ -1,21 +1,21 @@
 from math import floor
 
-import gpytorch
 from gpytorch.models import ApproximateGP
 from gpytorch.variational import CholeskyVariationalDistribution
 from gpytorch.variational import VariationalStrategy
+from torch.utils.data import TensorDataset, DataLoader
+import gpytorch
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
-from torch.utils.data import TensorDataset, DataLoader
 
-
-from gp.utils.utils import (check_device,
-                            tensor_to_array,
-                            array_to_tensor,
+from gp.utils.utils import (array_to_tensor,
+                            check_device,
                             load_model,
+                            plot_kernel,
                             save_model,
-                            set_kernel)
+                            set_kernel,
+                            tensor_to_array)
 
 
 class ApproximateGPModel(ApproximateGP):
@@ -425,6 +425,33 @@ class RunApproximateGP(object):
         # TODO: kernel関数をスイッチさせ、それに応じてわかりやすい形に変形する
         output_dict = self.model.covar_module.state_dict()
         return output_dict
+
+    def plot_kernel(self, *, kernel=None, plot_range=None, **kwargs):
+        """カーネル関数のプロット
+
+        Parameters
+        ----------
+        kernel : str or :obj:`gpytorch.kernels`, default None
+            使用するカーネル関数を指定する
+
+        plot_range : tuple, default None
+            プロットする幅
+
+        **kwargs : dict
+            カーネル関数に渡す設定
+        """
+        if kernel is None:
+            if kwargs:
+                temp_kernel = set_kernel(self._kernel, **self._ker_conf)
+            else:
+                temp_kernel = set_kernel(self._kernel, **kwargs)
+        else:
+            if kwargs:
+                temp_kernel = set_kernel(kernel, **self._ker_conf)
+            else:
+                temp_kernel = set_kernel(kernel, **kwargs)
+
+        plot_kernel(temp_kernel, plot_range, **kwargs)
 
     def plot(self):
         # TODO: 何が必要か定めて、実装
