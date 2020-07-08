@@ -12,6 +12,7 @@ import urllib.request
 import yaml
 
 import gpytorch
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import torch
@@ -297,3 +298,42 @@ def set_kernel(kernel, **kwargs):
             raise ValueError
     elif gpytorch.kernels.__name__ in str(type(kernel)):
         return kernel
+
+
+def plot_kernel(kernel, plot_range=None, **kwargs):
+    """カーネルの概形をプロットする関数
+
+    Parameters
+    ----------
+    kernel : str or :obj:`gpytorch.kernels`
+        使用するカーネル関数を指定する
+
+    plot_range : tuple, default None
+        プロットする幅
+
+    **kwargs : dict
+        カーネル関数に渡す設定
+    """
+    if plot_range is None:
+        plot_range = torch.linspace(-1.5, 1.5)
+    elif isinstance(plot_range, tuple):
+        if len(plot_range) == 2:
+            plot_range = torch.linspace(plot_range[0], plot_range[1])
+        else:
+            ValueError
+    else:
+        ValueError
+
+    kernel = set_kernel(kernel, **kwargs)
+    plt.plot(kernel(plot_range).numpy()[50])
+    plt.xticks(
+        [i for i in np.linspace(0, 100, 5)],
+        [f'{i:.2f}' for i in np.linspace(
+            plot_range.min().item(),
+            plot_range.max().item(),
+            5
+        )]
+    )
+    plt.xlabel(f'x')
+    plt.ylabel(f'kernel ({((plot_range.max()+plot_range.min())/2).item():.2f},  x)')
+    plt.show()
