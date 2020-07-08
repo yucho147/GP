@@ -1,4 +1,5 @@
 from math import floor
+import random
 
 from gpytorch.models import ApproximateGP
 from gpytorch.variational import CholeskyVariationalDistribution
@@ -94,6 +95,8 @@ class RunApproximateGP(object):
         mllに渡す設定一覧辞書
     opt_conf : dict, default dict()
         optimizerに渡す設定一覧辞書
+    random_state : int, default None
+        seedの固定
     """
     def __init__(self,
                  inducing_points_num=0.5,
@@ -104,7 +107,12 @@ class RunApproximateGP(object):
                  ard_option=True,
                  ker_conf=dict(),
                  mll_conf=dict(),
-                 opt_conf=dict()):
+                 opt_conf=dict(),
+                 random_state=None):
+        if isinstance(random_state, int):
+            random.seed(random_state)
+            np.random.seed(random_state)
+            torch.manual_seed(random_state)
         self.device = check_device()
         self.inducing_points_num = inducing_points_num
         self._kernel = kernel
