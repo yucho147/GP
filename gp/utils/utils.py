@@ -324,7 +324,6 @@ def plot_kernel(kernel, plot_range=None, **kwargs):
     else:
         ValueError
 
-    plot_range
     kernel = set_kernel(kernel, **kwargs)
     plt.plot(kernel(plot_range).numpy()[50])
     plt.xticks(
