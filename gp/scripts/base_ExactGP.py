@@ -13,6 +13,7 @@ from torch.utils.data import TensorDataset, DataLoader
 from gp.utils.utils import (array_to_tensor,
                             check_device,
                             load_model,
+                            plot_kernel,
                             save_model,
                             set_kernel,
                             tensor_to_array)
@@ -87,6 +88,8 @@ class RunExactGP(object):
         mllに渡す設定一覧辞書
     opt_conf : dict, default dict()
         optimizerに渡す設定一覧辞書
+    random_state : int, default None
+        seedの固定
     """
     def __init__(self,
                  kernel='RBFKernel',
@@ -96,7 +99,12 @@ class RunExactGP(object):
                  ard_option=True,
                  ker_conf=dict(),
                  opt_conf=dict(),
-                 mll_conf=dict()):
+                 mll_conf=dict(),
+                 random_state=None):
+        if isinstance(random_state, int):
+            random.seed(random_state)
+            np.random.seed(random_state)
+            torch.manual_seed(random_state)
         self.device = check_device()
         self._kernel = kernel
         self._likelihood = likelihood
@@ -348,7 +356,34 @@ class RunExactGP(object):
         self.epoch, self.model, self.likelihood, self.mll, self.optimizer, self.loss = load_model(file_path, **data)
 
     # TODO : def kernel_coeff(self)
-        
+
+    def plot_kernel(self, *, kernel=None, plot_range=None, **kwargs):
+        """カーネル関数のプロット
+
+        Parameters
+        ----------
+        kernel : str or :obj:`gpytorch.kernels`, default None
+            使用するカーネル関数を指定する
+
+        plot_range : tuple, default None
+            プロットする幅
+
+        **kwargs : dict
+            カーネル関数に渡す設定
+        """
+        if kernel is None:
+            if kwargs:
+                temp_kernel = set_kernel(self._kernel, **self._ker_conf)
+            else:
+                temp_kernel = set_kernel(self._kernel, **kwargs)
+        else:
+            if kwargs:
+                temp_kernel = set_kernel(kernel, **self._ker_conf)
+            else:
+                temp_kernel = set_kernel(kernel, **kwargs)
+
+        plot_kernel(temp_kernel, plot_range, **kwargs)
+
     def plot(self):
         # TODO: 何が必要か定めて、実装
         pass
