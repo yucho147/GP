@@ -4,6 +4,7 @@ ipdb==0.13.2
 tqdm==4.46.1
 click==7.1.2
 attrdict==2.0.1
+PyYAML==5.3.1
 
 # analysis
 gpytorch==1.1.1

@@ -1,22 +1,21 @@
 from math import floor
-import random
 
+import gpytorch
 from gpytorch.models import ApproximateGP
 from gpytorch.variational import CholeskyVariationalDistribution
 from gpytorch.variational import VariationalStrategy
-from torch.utils.data import TensorDataset, DataLoader
-import gpytorch
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+from torch.utils.data import TensorDataset, DataLoader
 
-from gp.utils.utils import (array_to_tensor,
-                            check_device,
+
+from gp.utils.utils import (check_device,
+                            tensor_to_array,
+                            array_to_tensor,
                             load_model,
-                            plot_kernel,
                             save_model,
-                            set_kernel,
-                            tensor_to_array)
+                            set_kernel)
 
 
 class ApproximateGPModel(ApproximateGP):
@@ -32,7 +31,6 @@ class ApproximateGPModel(ApproximateGP):
         `learn_inducing_locations=True` である以上、ここで指定する補助変数は更新される
     ex_var_dim : int
         説明変数の個数
-
         `ex_var_dim=None` を指定すると計算は速くなるものの、説明変数ごとの重みの縮退はとけない。
         結果、一般的に精度は落ちることが考えられる。
     kernel : str or :obj:`gpytorch.kernels`
@@ -62,6 +60,8 @@ class ApproximateGPModel(ApproximateGP):
         mean_x = self.mean_module(x)
         covar_x = self.covar_module(x)
         return gpytorch.distributions.MultivariateNormal(mean_x, covar_x)
+
+
 
 
 class RunApproximateGP(object):
@@ -95,8 +95,6 @@ class RunApproximateGP(object):
         mllに渡す設定一覧辞書
     opt_conf : dict, default dict()
         optimizerに渡す設定一覧辞書
-    random_state : int, default None
-        seedの固定
     """
     def __init__(self,
                  inducing_points_num=0.5,
@@ -105,15 +103,9 @@ class RunApproximateGP(object):
                  optimizer='Adam',
                  mll='VariationalELBO',
                  ard_option=True,
-                 num_classes=None,
                  ker_conf=dict(),
                  mll_conf=dict(),
-                 opt_conf=dict(),
-                 random_state=None):
-        if isinstance(random_state, int):
-            random.seed(random_state)
-            np.random.seed(random_state)
-            torch.manual_seed(random_state)
+                 opt_conf=dict()):
         self.device = check_device()
         self.inducing_points_num = inducing_points_num
         self._kernel = kernel
@@ -122,8 +114,6 @@ class RunApproximateGP(object):
         self._mll = mll
         self.ard_option = ard_option
         self.epoch = 0
-        self._num_features = 0 # SoftmaxLikelihoodの場合必要
-        self.num_classes = num_classes # SoftmaxLikelihoodの場合必要
         self.model = None  # 空のmodelを作成しないとloadできない
         self.mll = None    # 空のmodelを作成しないとloadできない
         self.optimizer = None  # 空のmodelを作成しないとloadできない
@@ -131,7 +121,7 @@ class RunApproximateGP(object):
         self._mll_conf = mll_conf
         self._opt_conf = opt_conf
         self.loss = []
-
+    
     def _set_likelihood(self):
         """likelihoodとしてself._likelihoodの指示の元、インスタンスを立てるメソッド
         """
@@ -140,12 +130,10 @@ class RunApproximateGP(object):
         elif self._likelihood == 'BernoulliLikelihood':
             return gpytorch.likelihoods.BernoulliLikelihood().to(self.device)
         elif self._likelihood == 'SoftmaxLikelihood':
-            return gpytorch.likelihoods.SoftmaxLikelihood(
-                num_features=self._num_features,
-                num_classes=self.num_classes
-                ).to(self.device)
+            return gpytorch.likelihoods.SoftmaxLikelihood().to(self.device)
         else:
             raise ValueError
+
 
     def _set_mll(self, num_data, mll_conf):
         """mllとしてself._mllの指示の元、インスタンスを立てるメソッド
@@ -293,8 +281,6 @@ class RunApproximateGP(object):
             ).to(self.device)
 
         # likelihoodのインスタンスを立てる
-        if self._likelihood == 'SoftmaxLikelihood':
-            self._num_features = train_x.shape[1]
         self.likelihood = self._set_likelihood()
 
         # mllのインスタンスを立てる
@@ -446,33 +432,6 @@ class RunApproximateGP(object):
         output_dict = self.model.covar_module.state_dict()
         return output_dict
 
-    def plot_kernel(self, *, kernel=None, plot_range=None, **kwargs):
-        """カーネル関数のプロット
-
-        Parameters
-        ----------
-        kernel : str or :obj:`gpytorch.kernels`, default None
-            使用するカーネル関数を指定する
-
-        plot_range : tuple, default None
-            プロットする幅
-
-        **kwargs : dict
-            カーネル関数に渡す設定
-        """
-        if kernel is None:
-            if kwargs:
-                temp_kernel = set_kernel(self._kernel, **self._ker_conf)
-            else:
-                temp_kernel = set_kernel(self._kernel, **kwargs)
-        else:
-            if kwargs:
-                temp_kernel = set_kernel(kernel, **self._ker_conf)
-            else:
-                temp_kernel = set_kernel(kernel, **kwargs)
-
-        plot_kernel(temp_kernel, plot_range, **kwargs)
-
     def plot(self):
         # TODO: 何が必要か定めて、実装
         pass
@@ -481,54 +440,62 @@ class RunApproximateGP(object):
         # TODO: 何を出力するか定めて、実装
         pass
 
-
 def main():
-    num = 1500
-    date_time = np.arange(num)
-    input_1 = np.sin(np.arange(num) * 0.05) + np.random.randn(num) / 6
-    input_2 = np.sin(np.arange(num) * 0.05 / 1.5) + input_1 + np.random.randn(num) / 6
-    input_3 = np.cos(np.arange(num) * 0.05 / 2) + input_2
-    input_3 = input_3 + np.random.randn(num) / 2 * input_3  # 自分自身の値が大きいと誤差項が大きくなるように設定
-    step = 10
-    data = np.array([date_time[:-step], input_1[:-step], input_2[:-step], input_3[:-step], input_3[step:]]).T
+    # データ作成
+    from sklearn.datasets import load_breast_cancer
+    data_0 = load_breast_cancer()
+    X = data_0.data
+    y = data_0.target
 
-    train_n = int(floor(0.9 * len(data)))
-    train_inputs = data[:train_n, 1:-1]
-    train_targets = data[:train_n, -1]
+    X_wr = np.vstack((X[:, 20:21])) # worst radius
+    X_wcp = np.vstack((X[:, 27:28])) # worst concave points
 
-    test_inputs = data[train_n:, 1:-1]
-    test_targets = data[train_n:, -1]
+    # 標準化
+    import scipy.stats
 
-    test_dataset = TensorDataset(array_to_tensor(test_inputs),
-                                 array_to_tensor(test_targets))
-    test_loader = DataLoader(test_dataset,
-                             batch_size=500)
+    X_wr = scipy.stats.zscore(X_wr)
+    X_wcp = scipy.stats.zscore(X_wcp)
 
-    run = RunApproximateGP(mll='PredictiveLogLikelihood')
-    run.set_model(train_inputs, train_targets, lr=3e-2, batch_size=10)
-    run.fit(10, test_dataloader=test_loader, verbose=True)
-    # test_dataloaderにDataLoaderを渡せば、val lossも出力されるようになる
-    # もしない場合にはtrainのlossのみが出力される
-    run.save('test.pth')        # モデルをsave
-    run.load('test.pth')        # モデルをload
+    input_data = np.array([X_wr.flatten(), X_wcp.flatten()]).T
 
-    predicts, (predicts_mean, predicts_std) = run.predict(test_inputs)
+    run = RunApproximateGP(inducing_points_num=100,
+                           kernel='RBFKernel',
+                           likelihood='BernoulliLikelihood')
+    run.set_model(input_data, y, lr=3e-2, batch_size=1)
+    run.fit(10, verbose=True)
+    # from IPython import embed; embed() # debug
+    # import ipdb; ipdb.set_trace()
+    # prob, (predicts_mean, predicts_std) = run.predict(input_data)
+    # TODO:pyro.distributions.torch.Bernoulli から等高線を出す方法を調べる
 
-    # plotはまだ未実装
-    plt.style.use('seaborn-darkgrid')
-    plt.plot(data[train_n:, 0], predicts_mean, label='predicts', linewidth=2)
-    plt.plot(data[train_n:, 0], test_targets, label='true value', linewidth=1)
-    plt.fill_between(
-        data[train_n:, 0],
-        predicts_mean - predicts_std,
-        predicts_mean + predicts_std,
-        alpha=0.6,
-        label='var'
-    )
-    plt.title(f'step={step}')
-    plt.legend()
+    x_min, x_max = input_data[:, 0].min() - .5, input_data[:, 0].max() + .5
+    y_min, y_max = input_data[:, 1].min() - .5, input_data[:, 1].max() + .5
+    mesh_num = 10 # step size in the mesh
+    xx, yy = np.meshgrid(np.linspace(x_min, x_max, mesh_num),
+                         np.linspace(x_min, x_max, mesh_num))
+
+    prob, (predicts_mean, predicts_std) = run.predict(np.c_[xx.ravel(), yy.ravel()])
+    Z = prob.probs
+    Z = tensor_to_array(Z)
+    Z = Z.reshape(xx.shape)
+    # import ipdb; ipdb.set_trace()
+
+    from matplotlib.colors import ListedColormap
+    fig = plt.figure(figsize=(8,6))
+    ax = fig.add_subplot(1,1,1)
+    cm = plt.cm.RdBu
+    cm_bright = ListedColormap(['#FF0000', '#0000FF'])
+    # import ipdb; ipdb.set_trace()
+    ax.contourf(xx, yy, Z, cmap=cm, alpha=.8)
+    ax.scatter(input_data[:, 0], input_data[:, 1], c=y, cmap=cm_bright, edgecolors='k', alpha=0.6)
+    # im = plt.scatter(X_wr, X_wcp, c=prob.probs.numpy(), cmap=plt.cm.Set1, edgecolor='k')
+    ax.set_xlim(xx.min(), xx.max())
+    ax.set_ylim(yy.min(), yy.max())
+    ax.set_xticks(())
+    ax.set_yticks(())
+    # fig.colorbar(im)
     plt.show()
-
 
 if __name__ == '__main__':
     main()
+    
