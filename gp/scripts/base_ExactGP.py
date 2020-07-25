@@ -1,15 +1,10 @@
-from math import floor
-
 import random
 
-import gpytorch
 from gpytorch.models import ExactGP
+import gpytorch
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
-from torch.utils.data import TensorDataset, DataLoader
-
-
 from gp.utils.utils import (array_to_tensor,
                             check_device,
                             load_model,
@@ -17,6 +12,9 @@ from gp.utils.utils import (array_to_tensor,
                             save_model,
                             set_kernel,
                             tensor_to_array)
+
+from .likelihoods import GaussianLikelihood
+
 
 class ExactGPModel(ExactGP):
     """ExactGP用のモデル定義クラス
@@ -124,7 +122,7 @@ class RunExactGP(object):
         """likelihoodとしてself._likelihoodの指示の元、インスタンスを立てるメソッド
         """
         if self._likelihood in {'GaussianLikelihood', 'GL'}:
-            return gpytorch.likelihoods.GaussianLikelihood().to(self.device)
+            return GaussianLikelihood().to(self.device)
         else:
             raise ValueError
 
@@ -210,7 +208,7 @@ class RunExactGP(object):
 
         # likelihoodのインスタンスを立てる
         self.likelihood = self._set_likelihood()
-        
+
         # ここで上記モデルのインスタンスを立てる
         if ard_option:
             self.model = ExactGPModel(
@@ -255,14 +253,14 @@ class RunExactGP(object):
             表示形式
         """
         if type(test_x) == np.ndarray:
-             test_x = array_to_tensor(test_x)
+            test_x = array_to_tensor(test_x)
         if type(test_y) == np.ndarray:
-             test_y = array_to_tensor(test_y)
-        
+            test_y = array_to_tensor(test_y)
+
         for epoch in range(epochs):
             train_loss = []
             test_loss = []
-            self.model.train()     
+            self.model.train()
             self.likelihood.train()
             self.optimizer.zero_grad()
             # 今回のみの処理な気がする([0]のところ)
@@ -274,7 +272,7 @@ class RunExactGP(object):
             self.loss.append(loss.item())
             train_loss.append(loss.item())
 
-            self.model.eval()     
+            self.model.eval()
             self.likelihood.eval()
             if test_x is not None and test_y is not None:
                 with torch.no_grad():

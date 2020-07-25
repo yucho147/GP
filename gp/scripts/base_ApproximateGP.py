@@ -18,6 +18,9 @@ from gp.utils.utils import (array_to_tensor,
                             set_kernel,
                             tensor_to_array)
 
+from .likelihoods import (PoissonLikelihood,
+                          GaussianLikelihood)
+
 
 class ApproximateGPModel(ApproximateGP):
     """ApproximateGP用のモデル定義クラス
@@ -133,7 +136,9 @@ class RunApproximateGP(object):
         """likelihoodとしてself._likelihoodの指示の元、インスタンスを立てるメソッド
         """
         if self._likelihood in {'GaussianLikelihood', 'GL'}:
-            return gpytorch.likelihoods.GaussianLikelihood().to(self.device)
+            return GaussianLikelihood().to(self.device)
+        elif self._likelihood in {'PoissonLikelihood', 'PL'}:
+            return PoissonLikelihood().to(self.device)
         else:
             raise ValueError
 
