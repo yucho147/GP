@@ -19,27 +19,25 @@ from gp.utils.utils import (array_to_tensor,
                             tensor_to_array)
 
 from .likelihoods import (PoissonLikelihood,
-                          GaussianLikelihood)
+                          GaussianLikelihood,
+                          BernoulliLikelihood,
+                          SoftmaxLikelihood)
+
 
 class ApproximateGPModel(ApproximateGP):
     """ApproximateGP用のモデル定義クラス
-
     ApproximateGPを使用する場合、本クラスにてモデルを構築する(予定)
-
     Parameters
     ----------
     inducing_points : torch.tensor
         補助変数の座標
-
         `learn_inducing_locations=True` である以上、ここで指定する補助変数は更新される
     ex_var_dim : int
         説明変数の個数
-
         `ex_var_dim=None` を指定すると計算は速くなるものの、説明変数ごとの重みの縮退はとけない。
         結果、一般的に精度は落ちることが考えられる。
     kernel : str or :obj:`gpytorch.kernels`
         使用するカーネル関数を指定する
-
         基本はstrで指定されることを想定しているものの、自作のカーネル関数を入力することも可能
     **ker_conf : dict
         カーネル関数に渡す設定
@@ -68,18 +66,14 @@ class ApproximateGPModel(ApproximateGP):
 
 class RunApproximateGP(object):
     """ApproximateGPModelの実行クラス
-
     ApproximateGPModelをラップし、学習・予測・プロット等を司る
-
     Parameters
     ----------
     inducing_points_num : int or float
         補助変数の個数(int)
-
         もし 0 < inducing_points_num < 1 が渡された場合学習用データの len と inducing_points_num の積が補助変数の個数として設定される
     kernel : str or :obj:`gpytorch.kernels`, default 'RBFKernel
         使用するカーネル関数を指定する
-
         基本はstrで指定されることを想定しているものの、自作のカーネル関数を入力することも可能
     likelihood : str, default 'GaussianLikelihood'
         likelihoodとして使用するクラス名が指定される
@@ -89,8 +83,8 @@ class RunApproximateGP(object):
         確率分布の周辺化の方法のクラス名が指定される
     ard_option : bool, default True
         ARDカーネルを利用するかが指定される
-
         もし :obj:`RunApproximateGP.kernel_coeff` を利用する場合 `ard_option=True` を選択する
+    num_classes : SoftmaxLikelihoodを使う場合、分類するクラスの数
     ker_conf : dict, default dict()
         カーネル関数に渡す設定一覧辞書
     mll_conf : dict, default dict()
@@ -222,7 +216,6 @@ class RunApproximateGP(object):
                   mll_conf=None,
                   opt_conf=None):
         """使用するモデルのインスタンスを立てるメソッド
-
         Parameters
         ----------
         train_x : np.array or torch.tensor
@@ -237,7 +230,6 @@ class RunApproximateGP(object):
             学習データをシャッフルしてミニバッチ学習させるかを設定
         kernel : str or :obj:`gpytorch.kernels`, default 'RBFKernel
             使用するカーネル関数を指定する
-
             基本はstrで指定されることを想定しているものの、自作のカーネル関数を入力することも可能
         ard_option : bool, default None
             ARDカーネルを利用するかが指定される
@@ -319,7 +311,6 @@ class RunApproximateGP(object):
             test_dataloader=None,
             verbose=True):
         """学習用メソッド
-
         Parameters
         ----------
         epochs : int
@@ -328,7 +319,6 @@ class RunApproximateGP(object):
             学習データをまとめたデータローダー
         test_dataloader : :obj:`torch.utils.data.DataLoader`, default None
             テストデータをまとめたデータローダー
-
             もし test_dataloader を設定している場合エポックごとにテストデータに対するlossも表示されるように設定される
         verbose : bool, default True
             表示形式
@@ -369,17 +359,14 @@ class RunApproximateGP(object):
 
     def predict(self, X):
         """予測用メソッド
-
         Parameters
         ----------
         X : np.array or torch.tensor
             入力説明変数
-
         Returns
         -------
         predicts : :obj:`gpytorch.distributions.multivariate_normal.MultivariateNormal`
             予測された目的変数のオブジェクト
-
             likelihoodの__call__が呼び出されており、平均・標準偏差以外にも多くの要素で構成されている。
         predicts_mean : np.array
             予測された目的変数の平均値
@@ -398,7 +385,6 @@ class RunApproximateGP(object):
 
     def save(self, file_path):
         """モデルのsaveメソッド
-
         Parameters
         ----------
         file_path : str
@@ -416,7 +402,6 @@ class RunApproximateGP(object):
 
     def load(self, file_path):
         """モデルのloadメソッド
-
         Parameters
         ----------
         file_path : str
@@ -434,14 +419,11 @@ class RunApproximateGP(object):
 
     def kernel_coeff(self):
         """kernelの係数を出力するメソッド
-
         Returns
         -------
         output_dict : dict
             カーネル関数の係数
-
             `ard_option=True` の場合、 $\Theta$ が各々の説明変数ごとに重みを変えて更新され、出力される
-
         Warning
         --------
         RBFKernelの場合、各説明変数の重要度 $\eta$ は出力される `'base_kernel.raw_lengthscale'` の逆数の2乗に対応する
@@ -452,15 +434,12 @@ class RunApproximateGP(object):
 
     def plot_kernel(self, *, kernel=None, plot_range=None, **kwargs):
         """カーネル関数のプロット
-
         Parameters
         ----------
         kernel : str or :obj:`gpytorch.kernels`, default None
             使用するカーネル関数を指定する
-
         plot_range : tuple, default None
             プロットする幅
-
         **kwargs : dict
             カーネル関数に渡す設定
         """
@@ -536,3 +515,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
