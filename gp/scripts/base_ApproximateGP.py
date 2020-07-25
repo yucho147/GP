@@ -18,6 +18,8 @@ from gp.utils.utils import (array_to_tensor,
                             set_kernel,
                             tensor_to_array)
 
+from .likelihoods import (PoissonLikelihood,
+                          GaussianLikelihood)
 
 class ApproximateGPModel(ApproximateGP):
     """ApproximateGP用のモデル定義クラス
@@ -136,11 +138,13 @@ class RunApproximateGP(object):
         """likelihoodとしてself._likelihoodの指示の元、インスタンスを立てるメソッド
         """
         if self._likelihood in {'GaussianLikelihood', 'GL'}:
-            return gpytorch.likelihoods.GaussianLikelihood().to(self.device)
+            return GaussianLikelihood().to(self.device)
+        elif self._likelihood in {'PoissonLikelihood', 'PL'}:
+            return PoissonLikelihood().to(self.device)
         elif self._likelihood == 'BernoulliLikelihood':
-            return gpytorch.likelihoods.BernoulliLikelihood().to(self.device)
+            return BernoulliLikelihood().to(self.device)
         elif self._likelihood == 'SoftmaxLikelihood':
-            return gpytorch.likelihoods.SoftmaxLikelihood(
+            return SoftmaxLikelihood(
                 num_features=self._num_features,
                 num_classes=self.num_classes
                 ).to(self.device)
