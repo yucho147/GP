@@ -11,6 +11,8 @@ import time
 import urllib.request
 import yaml
 
+from gpytorch.distributions import MultivariateNormal
+from pyro.distributions import Poisson
 import gpytorch
 import matplotlib.pyplot as plt
 import numpy as np
@@ -337,3 +339,112 @@ def plot_kernel(kernel, plot_range=None, **kwargs):
     plt.xlabel(f'x')
     plt.ylabel(f'kernel ({((plot_range.max()+plot_range.min())/2).item():.2f},  x)')
     plt.show()
+
+
+def _predict_obj(input, cl=0.68, sample_num=None):
+    """predictメソッドで利用するオブジェクトを返す関数
+
+    Parameters
+    ----------
+    input : object
+        likelihoodsの返り値
+    cl : float default 0.68(1sigma)
+        信頼区間[%]
+    sample_num : int default None
+        サンプル数
+
+    Returns
+    -------
+    output : object
+        予測された目的変数のオブジェクト
+
+        - output.mean : 予測された目的変数の平均値
+        - output.upper : 予測された目的変数の信頼区間の上限
+        - output.lower : 予測された目的変数の信頼区間の下限
+        - output.samples : 入力説明変数に対する予測サンプル(sample_num個サンプルされる)
+    """
+    class OutPut:
+        pass
+    output = OutPut
+
+    if isinstance(input, MultivariateNormal):
+        std = input.stddev
+        mean = input.mean
+        output.mean = tensor_to_array(mean)
+        output.upper = tensor_to_array(mean.add(std.mul(cl/2. / 0.3413)))
+        output.lower = tensor_to_array(mean.sub(std.mul(cl/2. / 0.3413)))
+        if sample_num:
+            output.samples = tensor_to_array(
+                input.sample(torch.Size([sample_num]))
+            )
+        else:
+            output.samples = None
+    elif isinstance(input, Poisson):
+        output.mean = tensor_to_array(input.mean)
+        percentiles = [(1.-cl)/2., (1.+cl)/2.]
+        output.lower, output.upper = _percentiles_from_samples(
+            input.sample(torch.Size([1000])),
+            percentiles
+        )
+        output.lower = tensor_to_array(output.lower)
+        output.upper = tensor_to_array(output.upper)
+        if sample_num:
+            output.samples = tensor_to_array(
+                input.sample(torch.Size([sample_num]))
+            )
+        else:
+            output.samples = None
+    else:
+        percentiles = [(1.-cl)/2., 0.5, (1.+cl)/2.]
+        output.lower, output.mean, output.upper = _percentiles_from_samples(
+            input.sample(torch.Size([1000])),
+            percentiles
+        )
+        output.lower = tensor_to_array(output.lower)
+        output.mean = tensor_to_array(output.mean)
+        output.upper = tensor_to_array(output.upper)
+        if sample_num:
+            output.samples = tensor_to_array(
+                input.sample(torch.Size([sample_num]))
+            )
+        else:
+            output.samples = None
+
+    return output
+
+
+def _percentiles_from_samples(samples, percentiles=[0.05, 0.5, 0.95]):
+    """サンプルされたデータセットからパーセンタイル点を求め、関数形をスムージングする関数
+    Parameters
+    ----------
+    samples : object
+        likelihoodsの返り値
+    percentiles : list default [0.05, 0.5, 0.95]
+        知りたいパーセンタイル点
+
+    Returns
+    -------
+    percentiles_from_samples : tensor
+        パーセンタイル点の値
+    """
+    num_samples = samples.size(0)
+    samples = samples.sort(dim=0)[0]
+
+    # Get samples corresponding to percentile
+    percentile_samples = [
+        samples[int(num_samples * percentile)]
+        for percentile in percentiles
+    ]
+
+    # Smooth the samples
+    kernel = torch.full((1, 1, 5), fill_value=0.2)
+    percentiles_samples = [
+        torch.nn.functional.conv1d(
+            percentile_sample.view(1, 1, -1),
+            kernel,
+            padding=2
+        ).view(-1)
+        for percentile_sample in percentile_samples
+    ]
+
+    return percentiles_samples
