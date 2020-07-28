@@ -17,6 +17,9 @@ from gp.utils.utils import (array_to_tensor,
 from .likelihoods import GaussianLikelihood
 
 
+from .likelihoods import GaussianLikelihood
+
+
 class ExactGPModel(ExactGP):
     """ExactGP用のモデル定義クラス
 

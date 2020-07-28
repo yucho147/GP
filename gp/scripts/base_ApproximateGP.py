@@ -22,6 +22,9 @@ from gp.utils.utils import (array_to_tensor,
 from .likelihoods import (PoissonLikelihood,
                           GaussianLikelihood)
 
+from .likelihoods import (PoissonLikelihood,
+                          GaussianLikelihood)
+
 
 class ApproximateGPModel(ApproximateGP):
     """ApproximateGP用のモデル定義クラス
