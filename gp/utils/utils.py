@@ -280,11 +280,10 @@ def set_kernel(kernel, **kwargs):
             return gpytorch.kernels.ScaleKernel(
                 gpytorch.kernels.MaternKernel(**kwargs)
                 )
-        # TODO: PeriodicKernelはコレスキー分解をvariational strategyに指定できない?
-        # elif kernel in {'PeriodicKernel'}:
-        #     return gpytorch.kernels.ScaleKernel(
-        #         gpytorch.kernels.PeriodicKernel(**kwargs)
-        #         )
+        elif kernel in {'PeriodicKernel'}:
+            return gpytorch.kernels.ScaleKernel(
+                gpytorch.kernels.PeriodicKernel(**kwargs)
+                )
         elif kernel in {'RBFKernel'}:
             return gpytorch.kernels.ScaleKernel(
                 gpytorch.kernels.RBFKernel(**kwargs)
