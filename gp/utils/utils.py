@@ -341,14 +341,14 @@ def plot_kernel(kernel, plot_range=None, **kwargs):
     plt.show()
 
 
-def _predict_obj(input, cl=0.68, sample_num=None):
+def _predict_obj(input, cl=0.6827, sample_num=None):
     """predictメソッドで利用するオブジェクトを返す関数
 
     Parameters
     ----------
     input : object
         likelihoodsの返り値
-    cl : float default 0.68(1sigma)
+    cl : float default 0.6827(1sigma)
         信頼区間[%]
     sample_num : int default None
         サンプル数
@@ -371,8 +371,10 @@ def _predict_obj(input, cl=0.68, sample_num=None):
         std = input.stddev
         mean = input.mean
         output.mean = tensor_to_array(mean)
-        output.upper = tensor_to_array(mean.add(std.mul(cl/2. / 0.3413)))
-        output.lower = tensor_to_array(mean.sub(std.mul(cl/2. / 0.3413)))
+        dist = torch.distributions.Normal(mean, std)
+
+        output.upper = tensor_to_array(dist.icdf(torch.tensor([(1.+cl)/2.])))
+        output.lower = tensor_to_array(dist.icdf(torch.tensor([(1.-cl)/2.])))
         if sample_num:
             output.samples = tensor_to_array(
                 input.sample(torch.Size([sample_num]))

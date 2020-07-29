@@ -292,14 +292,14 @@ class RunExactGP(object):
         # TODO: 追加学習のために再学習の際、self.epochを利用する形にする
         self.epoch = epoch + 1
 
-    def predict(self, X, cl=0.68, sample_num=None):
+    def predict(self, X, cl=0.6827, sample_num=None):
         """予測用メソッド
 
         Parameters
         ----------
         X : np.array or torch.tensor
             入力説明変数
-        cl : float default 0.68(1sigma)
+        cl : float default 0.6827(1sigma)
             信頼区間[%]
         sample_num : int default None
             サンプル数
