@@ -449,3 +449,24 @@ def _percentiles_from_samples(samples, percentiles=[0.05, 0.5, 0.95]):
     ]
 
     return percentiles_samples
+
+
+def _sample_f(predicts_f, sample_f_num):
+    """関数fのサンプル
+
+    Parameters
+    ----------
+    predicts_f : :obj:`MultivariateNormal` or None
+        事前分布fの予測モデル出力
+    sample_f_num : int or None
+        サンプル数
+
+    Returns
+    -------
+    out : numpy.array or None
+        サンプルされた関数形
+    """
+    if predicts_f is None:
+        return None
+    else:
+        return tensor_to_array(predicts_f.sample(torch.Size([sample_f_num])))
