@@ -17,7 +17,8 @@ from gp.utils.utils import (array_to_tensor,
                             save_model,
                             set_kernel,
                             tensor_to_array,
-                            _predict_obj)
+                            _predict_obj,
+                            _sample_f)
 
 from .likelihoods import (PoissonLikelihood,
                           GaussianLikelihood)
@@ -357,7 +358,7 @@ class RunApproximateGP(object):
         # TODO: 追加学習のために再学習の際、self.epochを利用する形にする
         self.epoch = epoch + 1
 
-    def predict(self, X, cl=0.6827, sample_num=None):
+    def predict(self, X, cl=0.6827, sample_num=None, sample_f_num=None):
         """予測用メソッド
 
         Parameters
@@ -367,7 +368,9 @@ class RunApproximateGP(object):
         cl : float default 0.6827(1sigma)
             信頼区間[%]
         sample_num : int default None
-            サンプル数
+            yのサンプル数
+        sample_f_num : int default None
+            fのサンプル数
 
         Returns
         -------
@@ -377,7 +380,8 @@ class RunApproximateGP(object):
             - output.mean : 予測された目的変数の平均値
             - output.upper : 予測された目的変数の信頼区間の上限
             - output.lower : 予測された目的変数の信頼区間の下限
-            - output.samples : 入力説明変数に対する予測サンプル(sample_num個サンプルされる)
+            - output.samples : 入力説明変数に対する予測値yのサンプル(sample_num個サンプルされる)
+            - output.samples_f : 入力説明変数に対する予測関数fのサンプル(sample_f_num個サンプルされる)
         """
         if type(X) == np.ndarray:
             X = array_to_tensor(X)
@@ -385,7 +389,12 @@ class RunApproximateGP(object):
         self.likelihood.eval()
         with torch.no_grad():
             predicts = self.likelihood(self.model(X))
+            if self._likelihood in {'GaussianLikelihood', 'GL'}:
+                predicts_f = self.model(X)
+            else:
+                predicts_f = None
         output = _predict_obj(predicts, cl, sample_num)
+        output.samples_f = _sample_f(predicts_f, sample_f_num)
         return output
 
     def save(self, file_path):
