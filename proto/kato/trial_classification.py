@@ -16,7 +16,7 @@ def main():
     run = RunApproximateGP(inducing_points_num=100,
                            kernel='RBFKernel',
                            likelihood='BernoulliLikelihood')
-    run.set_model(input_data, y, lr=3e-2, batch_size=1)
+    run.set_model(input_data, y, lr=3e-2, batch_size=2000)
     run.fit(25, verbose=True)
     # prob, (predicts_mean, predicts_std) = run.predict(input_data)
 
@@ -29,7 +29,7 @@ def main():
     prob, (predicts_mean, predicts_std) = run.predict(
         np.c_[xx.ravel(), yy.ravel()]
         )
-    import ipdb; ipdb.set_trace()
+    # import ipdb; ipdb.set_trace()
     Z = prob.probs
     Z = tensor_to_array(Z)
     Z = Z.reshape(xx.shape)

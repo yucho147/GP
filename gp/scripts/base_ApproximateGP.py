@@ -20,8 +20,7 @@ from gp.utils.utils import (array_to_tensor,
 
 from .likelihoods import (PoissonLikelihood,
                           GaussianLikelihood,
-                          BernoulliLikelihood,
-                          SoftmaxLikelihood)
+                          BernoulliLikelihood)
 
 
 class ApproximateGPModel(ApproximateGP):
@@ -84,7 +83,6 @@ class RunApproximateGP(object):
     ard_option : bool, default True
         ARDカーネルを利用するかが指定される
         もし :obj:`RunApproximateGP.kernel_coeff` を利用する場合 `ard_option=True` を選択する
-    num_classes : SoftmaxLikelihoodを使う場合、分類するクラスの数
     ker_conf : dict, default dict()
         カーネル関数に渡す設定一覧辞書
     mll_conf : dict, default dict()
@@ -101,7 +99,6 @@ class RunApproximateGP(object):
                  optimizer='Adam',
                  mll='VariationalELBO',
                  ard_option=True,
-                 num_classes=None,
                  ker_conf=dict(),
                  mll_conf=dict(),
                  opt_conf=dict(),
@@ -118,8 +115,6 @@ class RunApproximateGP(object):
         self._mll = mll
         self.ard_option = ard_option
         self.epoch = 0
-        self._num_features = 0 # SoftmaxLikelihoodの場合必要
-        self.num_classes = num_classes # SoftmaxLikelihoodの場合必要
         self.model = None  # 空のmodelを作成しないとloadできない
         self.mll = None    # 空のmodelを作成しないとloadできない
         self.optimizer = None  # 空のmodelを作成しないとloadできない
@@ -137,11 +132,6 @@ class RunApproximateGP(object):
             return PoissonLikelihood().to(self.device)
         elif self._likelihood == 'BernoulliLikelihood':
             return BernoulliLikelihood().to(self.device)
-        elif self._likelihood == 'SoftmaxLikelihood':
-            return SoftmaxLikelihood(
-                num_features=self._num_features,
-                num_classes=self.num_classes
-                ).to(self.device)
         else:
             raise ValueError
 
@@ -289,8 +279,6 @@ class RunApproximateGP(object):
             ).to(self.device)
 
         # likelihoodのインスタンスを立てる
-        if self._likelihood == 'SoftmaxLikelihood':
-            self._num_features = train_x.shape[1]
         self.likelihood = self._set_likelihood()
 
         # mllのインスタンスを立てる
