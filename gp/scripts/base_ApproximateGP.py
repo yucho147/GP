@@ -385,8 +385,7 @@ class RunApproximateGP(object):
             - output.lower : 予測された目的変数の信頼区間の下限
             - output.samples : 入力説明変数に対する予測値yのサンプル(sample_num個サンプルされる)
             - output.samples_f : 入力説明変数に対する予測関数fのサンプル(sample_f_num個サンプルされる)
-        - output.probs : BernoulliLikelihood を指定した際に、2値分類の予測確率
-                         このとき mean,upper,lower は output に追加されない
+            - output.probs : BernoulliLikelihood を指定した際に、2値分類の予測確率。このとき mean,upper,lower は output に追加されない。               
         """
         if type(X) == np.ndarray:
             X = array_to_tensor(X)
