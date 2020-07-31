@@ -440,62 +440,99 @@ class RunApproximateGP(object):
         # TODO: 何を出力するか定めて、実装
         pass
 
+
 def main():
     # データ作成
-    from sklearn.datasets import load_breast_cancer
-    data_0 = load_breast_cancer()
-    X = data_0.data
-    y = data_0.target
-
-    X_wr = np.vstack((X[:, 20:21])) # worst radius
-    X_wcp = np.vstack((X[:, 27:28])) # worst concave points
-
-    # 標準化
-    import scipy.stats
-
-    X_wr = scipy.stats.zscore(X_wr)
-    X_wcp = scipy.stats.zscore(X_wcp)
-
-    input_data = np.array([X_wr.flatten(), X_wcp.flatten()]).T
+    from sklearn.datasets import make_moons
+    X, y = make_moons(noise=0.3, random_state=0)
+    input_data = X
 
     run = RunApproximateGP(inducing_points_num=100,
                            kernel='RBFKernel',
                            likelihood='BernoulliLikelihood')
-    run.set_model(input_data, y, lr=3e-2, batch_size=1)
-    run.fit(10, verbose=True)
-    # from IPython import embed; embed() # debug
-    # import ipdb; ipdb.set_trace()
+    run.set_model(input_data, y, lr=3e-2, batch_size=2000)
+    run.fit(25, verbose=True)
     # prob, (predicts_mean, predicts_std) = run.predict(input_data)
-    # TODO:pyro.distributions.torch.Bernoulli から等高線を出す方法を調べる
 
     x_min, x_max = input_data[:, 0].min() - .5, input_data[:, 0].max() + .5
     y_min, y_max = input_data[:, 1].min() - .5, input_data[:, 1].max() + .5
-    mesh_num = 10 # step size in the mesh
+    mesh_num = 30
     xx, yy = np.meshgrid(np.linspace(x_min, x_max, mesh_num),
-                         np.linspace(x_min, x_max, mesh_num))
-
-    prob, (predicts_mean, predicts_std) = run.predict(np.c_[xx.ravel(), yy.ravel()])
+                         np.linspace(y_min, y_max, mesh_num))
+    prob, (predicts_mean, predicts_std) = run.predict(
+        np.c_[xx.ravel(), yy.ravel()]
+        )
     Z = prob.probs
     Z = tensor_to_array(Z)
     Z = Z.reshape(xx.shape)
     # import ipdb; ipdb.set_trace()
 
     from matplotlib.colors import ListedColormap
-    fig = plt.figure(figsize=(8,6))
-    ax = fig.add_subplot(1,1,1)
+    fig = plt.figure(figsize=(8, 6))
+    ax = fig.add_subplot(1, 1, 1)
     cm = plt.cm.RdBu
     cm_bright = ListedColormap(['#FF0000', '#0000FF'])
-    # import ipdb; ipdb.set_trace()
     ax.contourf(xx, yy, Z, cmap=cm, alpha=.8)
-    ax.scatter(input_data[:, 0], input_data[:, 1], c=y, cmap=cm_bright, edgecolors='k', alpha=0.6)
-    # im = plt.scatter(X_wr, X_wcp, c=prob.probs.numpy(), cmap=plt.cm.Set1, edgecolor='k')
+    ax.scatter(input_data[:, 0], input_data[:, 1], c=y,
+               cmap=cm_bright, edgecolors='k', alpha=0.6)
     ax.set_xlim(xx.min(), xx.max())
     ax.set_ylim(yy.min(), yy.max())
     ax.set_xticks(())
     ax.set_yticks(())
-    # fig.colorbar(im)
     plt.show()
+
+
+# def main():
+#     # データ作成
+#     from sklearn.datasets import load_breast_cancer
+#     data_0 = load_breast_cancer()
+#     X = data_0.data
+#     y = data_0.target
+
+#     X_wr = np.vstack((X[:, 20:21])) # worst radius
+#     X_wcp = np.vstack((X[:, 27:28])) # worst concave points
+
+#     # 標準化
+#     import scipy.stats
+
+#     X_wr = scipy.stats.zscore(X_wr)
+#     X_wcp = scipy.stats.zscore(X_wcp)
+
+#     input_data = np.array([X_wr.flatten(), X_wcp.flatten()]).T
+
+#     run = RunApproximateGP(inducing_points_num=100,
+#                            kernel='RBFKernel',
+#                            likelihood='BernoulliLikelihood')
+#     run.set_model(input_data, y, lr=3e-2, batch_size=1)
+#     run.fit(10, verbose=True)
+
+#     x_min, x_max = input_data[:, 0].min() - .5, input_data[:, 0].max() + .5
+#     y_min, y_max = input_data[:, 1].min() - .5, input_data[:, 1].max() + .5
+#     mesh_num = 10 # step size in the mesh
+#     xx, yy = np.meshgrid(np.linspace(x_min, x_max, mesh_num),
+#                          np.linspace(x_min, x_max, mesh_num))
+
+#     prob, (predicts_mean, predicts_std) = run.predict(np.c_[xx.ravel(), yy.ravel()])
+#     Z = prob.probs
+#     Z = tensor_to_array(Z)
+#     Z = Z.reshape(xx.shape)
+#     # import ipdb; ipdb.set_trace()
+
+#     from matplotlib.colors import ListedColormap
+#     fig = plt.figure(figsize=(8,6))
+#     ax = fig.add_subplot(1,1,1)
+#     cm = plt.cm.RdBu
+#     cm_bright = ListedColormap(['#FF0000', '#0000FF'])
+#     # import ipdb; ipdb.set_trace()
+#     ax.contourf(xx, yy, Z, cmap=cm, alpha=.8)
+#     ax.scatter(input_data[:, 0], input_data[:, 1], c=y, cmap=cm_bright, edgecolors='k', alpha=0.6)
+#     ax.set_xlim(xx.min(), xx.max())
+#     ax.set_ylim(yy.min(), yy.max())
+#     ax.set_xticks(())
+#     ax.set_yticks(())
+#     # fig.colorbar(im)
+#     plt.show()
+
 
 if __name__ == '__main__':
     main()
-    

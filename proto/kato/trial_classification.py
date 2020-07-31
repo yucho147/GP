@@ -25,13 +25,11 @@ def main():
     mesh_num = 30
     xx, yy = np.meshgrid(np.linspace(x_min, x_max, mesh_num),
                          np.linspace(y_min, y_max, mesh_num))
-
-    prob, (predicts_mean, predicts_std) = run.predict(
-        np.c_[xx.ravel(), yy.ravel()]
+    pred_obj = run.predict(
+        np.c_[xx.ravel(), yy.ravel()],
+        sample_num=1
         )
-    # import ipdb; ipdb.set_trace()
-    Z = prob.probs
-    Z = tensor_to_array(Z)
+    Z = pred_obj.probs
     Z = Z.reshape(xx.shape)
 
     from matplotlib.colors import ListedColormap
