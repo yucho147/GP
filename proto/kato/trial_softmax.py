@@ -22,8 +22,7 @@ def main():
 
     run = RunApproximateGP(inducing_points_num=50,
                            kernel='RBFKernel',
-                           likelihood='SoftmaxLikelihood',
-                           num_classes=3)
+                           likelihood='SoftmaxLikelihood')
     run.set_model(input_data, y_onehot, lr=3e-2, batch_size=300)
     run.fit(10, verbose=True)
     # prob, (predicts_mean, predicts_std) = run.predict(input_data)
