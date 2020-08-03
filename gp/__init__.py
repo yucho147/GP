@@ -5,7 +5,7 @@ from .scripts import (
     RunApproximateGP,
     ExactGPModel,
     RunExactGP,
-    Regression,
+    Regressor,
     Classifier
 )
 from .utils import utils
@@ -16,7 +16,7 @@ __all__ = [
     "RunApproximateGP",
     "ExactGPModel",
     "RunExactGP",
-    "Regression",
+    "Regressor",
     "Classifier",
     "utiles"
 ]
