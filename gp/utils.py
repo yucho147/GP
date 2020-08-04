@@ -1,24 +1,44 @@
-###############################################################################
-# なんか諸々便利であろう関数を作ったらここで呼び出す感じで ####################
-###############################################################################
+#!/usr/bin/env python3
+
+__all__ = [
+    "array_to_tensor",
+    "check_device",
+    "load_config",
+    "load_data",
+    "plot_kernel",
+    "set_kernel",
+    "tensor_to_array"
+]
 
 from attrdict import AttrDict
-from pathlib import Path
+from os import makedirs
+from os.path import (
+    basename,
+    isdir,
+    join,
+    splitext
+)
+from urllib.request import urlretrieve
 import csv
-import logging
-import os
-import time
-import urllib.request
 import yaml
 
 from gpytorch.distributions import MultivariateNormal
+from gpytorch.kernels import (
+    CosineKernel,
+    LinearKernel,
+    MaternKernel,
+    PeriodicKernel,
+    RBFKernel,
+    RQKernel,
+    ScaleKernel,
+    SpectralMixtureKernel
+)
+from gpytorch import kernels
 from pyro.distributions import Poisson, Bernoulli
-import gpytorch
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 import torch
-import torchvision
+
 
 csv.field_size_limit(1000000000)
 
@@ -58,7 +78,7 @@ def load_data(file_path):
     header = []
     data = []
     with open(file_path, 'r', newline="\n") as fi_:
-        root, ext = os.path.splitext(file_path)
+        root, ext = splitext(file_path)
         if ext == '.tsv':
             reader = csv.reader(fi_, delimiter='\t')
         elif ext == '.csv':
@@ -104,10 +124,12 @@ def array_to_tensor(input_data, device=None):
     if input_data.dtype == float:
         # np.arrayはdoubleを前提として動いているが、
         # torchはdouble(float64)を前提としていない機能があるため、float32に変更する必要がある
-        output_data = torch.tensor(input_data, dtype=torch.float32).contiguous().to(device)
+        output_data = torch.tensor(input_data,
+                                   dtype=torch.float32).contiguous().to(device)
     elif input_data.dtype == int:
         # 同様でtorchではlongが標準
-        output_data = torch.tensor(input_data, dtype=torch.long).contiguous().to(device)
+        output_data = torch.tensor(input_data,
+                                   dtype=torch.long).contiguous().to(device)
     return output_data
 
 
@@ -168,10 +190,10 @@ def data_downloader():
     inp = int(input('欲しいデータの番号を入力して(1~6): '))
     if inp in index.keys():
         directory = './data'
-        if not os.path.isdir(directory):
-            os.makedirs(directory)
-        urllib.request.urlretrieve(index[inp]['url'],
-                                   os.path.join(directory, os.path.basename(index[inp]['url'])))
+        if not isdir(directory):
+            makedirs(directory)
+        urlretrieve(index[inp]['url'],
+                    join(directory, basename(index[inp]['url'])))
 
 
 def save_model(file_path, *, epoch, model, likelihood, mll, optimizer, loss):
@@ -269,35 +291,35 @@ def set_kernel(kernel, **kwargs):
     """
     if isinstance(kernel, str):
         if kernel in {'CosineKernel'}:
-            return gpytorch.kernels.ScaleKernel(
-                gpytorch.kernels.CosineKernel(**kwargs)
+            return ScaleKernel(
+                CosineKernel(**kwargs)
             )
         elif kernel in {'LinearKernel'}:
-            return gpytorch.kernels.ScaleKernel(
-                gpytorch.kernels.LinearKernel(**kwargs)
+            return ScaleKernel(
+                LinearKernel(**kwargs)
                 )
         elif kernel in {'MaternKernel'}:
-            return gpytorch.kernels.ScaleKernel(
-                gpytorch.kernels.MaternKernel(**kwargs)
+            return ScaleKernel(
+                MaternKernel(**kwargs)
                 )
         elif kernel in {'PeriodicKernel'}:
-            return gpytorch.kernels.ScaleKernel(
-                gpytorch.kernels.PeriodicKernel(**kwargs)
+            return ScaleKernel(
+                PeriodicKernel(**kwargs)
                 )
         elif kernel in {'RBFKernel'}:
-            return gpytorch.kernels.ScaleKernel(
-                gpytorch.kernels.RBFKernel(**kwargs)
+            return ScaleKernel(
+                RBFKernel(**kwargs)
             )
         elif kernel in {'RQKernel'}:
-            return gpytorch.kernels.ScaleKernel(
-                gpytorch.kernels.RQKernel(**kwargs)
+            return ScaleKernel(
+                RQKernel(**kwargs)
             )
         elif kernel in {'SpectralMixtureKernel'}:
             # SpectralMixtureKernelはScaleKernelを使えない
-            return gpytorch.kernels.SpectralMixtureKernel(**kwargs)
+            return SpectralMixtureKernel(**kwargs)
         else:
             raise ValueError
-    elif gpytorch.kernels.__name__ in str(type(kernel)):
+    elif kernels.__name__ in str(type(kernel)):
         return kernel
 
 
@@ -335,8 +357,10 @@ def plot_kernel(kernel, plot_range=None, **kwargs):
             5
         )]
     )
-    plt.xlabel(f'x')
-    plt.ylabel(f'kernel ({((plot_range.max()+plot_range.min())/2).item():.2f},  x)')
+    plt.xlabel('x')
+    plt.ylabel(
+        f'kernel ({((plot_range.max()+plot_range.min())/2).item():.2f},  x)'
+    )
     plt.show()
 
 

@@ -1,22 +1,19 @@
-__version__ = '0.1.0'
-
-from .scripts import (
-    ApproximateGPModel,
-    RunApproximateGP,
-    ExactGPModel,
-    RunExactGP,
-    Regressor,
-    Classifier
-)
-from .utils import utils
-
+#!/usr/bin/env python3
 
 __all__ = [
     "ApproximateGPModel",
-    "RunApproximateGP",
     "ExactGPModel",
+    "RunApproximateGP",
     "RunExactGP",
-    "Regressor",
-    "Classifier",
-    "utiles"
+    "utils"
 ]
+
+from ._base_ApproximateGP import (
+    ApproximateGPModel,
+    RunApproximateGP
+)
+from ._base_ExactGP import (
+    ExactGPModel,
+    RunExactGP
+)
+from . import utils
