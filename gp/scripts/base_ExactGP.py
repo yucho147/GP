@@ -15,6 +15,18 @@ from gp.utils.utils import (array_to_tensor,
                             _predict_obj,
                             _sample_f)
 
+from .const import (
+    # likelihoods
+    gaussianlikelihood,
+    # mlls
+    exactmarginalloglikelihood,
+    # optimizers
+    adadelta,
+    adagrad,
+    adam,
+    rmsprop,
+    sgd,
+)
 from .likelihoods import GaussianLikelihood
 
 
@@ -123,7 +135,7 @@ class RunExactGP(object):
     def _set_likelihood(self):
         """likelihoodとしてself._likelihoodの指示の元、インスタンスを立てるメソッド
         """
-        if self._likelihood in {'GaussianLikelihood', 'GL'}:
+        if self._likelihood in gaussianlikelihood:
             return GaussianLikelihood().to(self.device)
         else:
             raise ValueError
@@ -132,7 +144,7 @@ class RunExactGP(object):
         """mllとしてself._mllの指示の元、インスタンスを立てるメソッド
         """
         # mllのインスタンスを立てる
-        if self._mll == 'ExactMarginalLogLikelihood':
+        if self._mll in exactmarginalloglikelihood:
             return gpytorch.mlls.ExactMarginalLogLikelihood(
                 self.likelihood,
                 self.model
@@ -143,23 +155,23 @@ class RunExactGP(object):
     def _set_optimizer(self, lr, opt_conf):
         """optimizerとしてself._optimizerの指示の元、インスタンスを立てるメソッド
         """
-        if self._optimizer == 'Adam':
+        if self._optimizer in adam:
             return torch.optim.Adam([
                 {'params': self.model.parameters()}
             ], lr=lr, **opt_conf)
-        elif self._optimizer == 'SGD':
+        elif self._optimizer in sgd:
             return torch.optim.SGD([
                 {'params': self.model.parameters()}
             ], lr=lr, **opt_conf)
-        elif self._optimizer == 'RMSprop':
+        elif self._optimizer in rmsprop:
             return torch.optim.RMSprop([
                 {'params': self.model.parameters()}
             ], lr=lr, **opt_conf)
-        elif self._optimizer == 'Adadelta':
+        elif self._optimizer in adadelta:
             return torch.optim.Adadelta([
                 {'params': self.model.parameters()}
             ], lr=lr, **opt_conf)
-        elif self._optimizer == 'Adagrad':
+        elif self._optimizer in adagrad:
             return torch.optim.Adagrad([
                 {'params': self.model.parameters()}
             ], lr=lr, **opt_conf)

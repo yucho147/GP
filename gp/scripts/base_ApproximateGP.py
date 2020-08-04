@@ -10,6 +10,22 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 
+from .const import (
+    # likelihoods
+    bernoullilikelihood,
+    gaussianlikelihood,
+    poissonlikelihood,
+    # mlls
+    gammarobustvariationalelbo,
+    predictiveloglikelihood,
+    variationalelbo,
+    # optimizers
+    adadelta,
+    adagrad,
+    adam,
+    rmsprop,
+    sgd,
+)
 from gp.utils.utils import (array_to_tensor,
                             check_device,
                             load_model,
@@ -138,11 +154,11 @@ class RunApproximateGP(object):
     def _set_likelihood(self):
         """likelihoodとしてself._likelihoodの指示の元、インスタンスを立てるメソッド
         """
-        if self._likelihood in {'GaussianLikelihood', 'GL'}:
+        if self._likelihood in gaussianlikelihood:
             return GaussianLikelihood().to(self.device)
-        elif self._likelihood in {'PoissonLikelihood', 'PL'}:
+        elif self._likelihood in poissonlikelihood:
             return PoissonLikelihood().to(self.device)
-        elif self._likelihood == 'BernoulliLikelihood':
+        elif self._likelihood in bernoullilikelihood:
             return BernoulliLikelihood().to(self.device)
         else:
             raise ValueError
@@ -151,21 +167,21 @@ class RunApproximateGP(object):
         """mllとしてself._mllの指示の元、インスタンスを立てるメソッド
         """
         # mllのインスタンスを立てる
-        if self._mll in {'VariationalELBO', 'VELBO'}:
+        if self._mll in variationalelbo:
             return gpytorch.mlls.VariationalELBO(
                 self.likelihood,
                 self.model,
                 num_data=num_data,
                 **mll_conf
             )
-        elif self._mll in {'PredictiveLogLikelihood', 'PLL'}:
+        elif self._mll in predictiveloglikelihood:
             return gpytorch.mlls.PredictiveLogLikelihood(
                 self.likelihood,
                 self.model,
                 num_data=num_data,
                 **mll_conf
             )
-        elif self._mll in {'GammaRobustVariationalELBO', 'GRVELBO'}:
+        elif self._mll in gammarobustvariationalelbo:
             return gpytorch.mlls.GammaRobustVariationalELBO(
                 self.likelihood,
                 self.model,
@@ -178,27 +194,27 @@ class RunApproximateGP(object):
     def _set_optimizer(self, lr, opt_conf):
         """optimizerとしてself._optimizerの指示の元、インスタンスを立てるメソッド
         """
-        if self._optimizer == 'Adam':
+        if self._optimizer in adam:
             return torch.optim.Adam([
                 {'params': self.model.parameters()},
                 {'params': self.likelihood.parameters()}
             ], lr=lr, **opt_conf)
-        elif self._optimizer == 'SGD':
+        elif self._optimizer in sgd:
             return torch.optim.SGD([
                 {'params': self.model.parameters()},
                 {'params': self.likelihood.parameters()}
             ], lr=lr, **opt_conf)
-        elif self._optimizer == 'RMSprop':
+        elif self._optimizer in rmsprop:
             return torch.optim.RMSprop([
                 {'params': self.model.parameters()},
                 {'params': self.likelihood.parameters()}
             ], lr=lr, **opt_conf)
-        elif self._optimizer == 'Adadelta':
+        elif self._optimizer in adadelta:
             return torch.optim.Adadelta([
                 {'params': self.model.parameters()},
                 {'params': self.likelihood.parameters()}
             ], lr=lr, **opt_conf)
-        elif self._optimizer == 'Adagrad':
+        elif self._optimizer in adagrad:
             return torch.optim.Adagrad([
                 {'params': self.model.parameters()},
                 {'params': self.likelihood.parameters()}
@@ -393,7 +409,7 @@ class RunApproximateGP(object):
         self.likelihood.eval()
         with torch.no_grad():
             predicts = self.likelihood(self.model(X))
-            if self._likelihood in {'GaussianLikelihood', 'GL'}:
+            if self._likelihood in gaussianlikelihood:
                 predicts_f = self.model(X)
             else:
                 predicts_f = None
