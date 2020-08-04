@@ -121,7 +121,8 @@ class RunApproximateGP(object):
     inducing_points_num : int or float
         補助変数の個数(int)
 
-        もし 0 < inducing_points_num < 1 が渡された場合、学習用データの len と inducing_points_num の積が補助変数の個数として設定される
+        もし 0 < inducing_points_num < 1 が渡された場合、学習用データの len と
+        inducing_points_num の積が補助変数の個数として設定される
     kernel : str or :obj:`gpytorch.kernels`, default :obj:`'RBFKernel'`
         使用するカーネル関数を指定する。下記から選択する。
 
@@ -133,7 +134,8 @@ class RunApproximateGP(object):
         - :obj:`'RQKernel'`
         - :obj:`'SpectralMixtureKernel'`
 
-        基本はstrで指定されることを想定しているものの、 :obj:`gpytorch.kernels` を用いた自作のカーネル関数を入力することも可能
+        基本はstrで指定されることを想定しているものの、 :obj:`gpytorch.kernels`
+        を用いた自作のカーネル関数を入力することも可能
     likelihood : str, default :obj:`'GaussianLikelihood'`
         likelihoodとして使用するクラス名が指定される。下記から選択する。
 
@@ -292,7 +294,7 @@ class RunApproximateGP(object):
             学習率
         batch_size : int, default 128
             ミニバッチでのデータ数
-        shffle : bool, default True
+        shuffle : bool, default True
             学習データをシャッフルしてミニバッチ学習させるかを設定
         """
         if type(train_x) == ndarray:
@@ -395,9 +397,12 @@ class RunApproximateGP(object):
 
             if epoch % (epochs//10) == 0 and verbose:
                 if test_loss:
-                    print(f'Epoch {epoch + 1}/{epochs} - Train Loss: {mean(train_loss):.3f} / Test Loss: {mean(test_loss):.3f}')
+                    print(f'Epoch {epoch + 1}/{epochs}'
+                          + f' - Train Loss: {mean(train_loss):.3f} /'
+                          + f' Test Loss: {mean(test_loss):.3f}')
                 else:
-                    print(f'Epoch {epoch + 1}/{epochs} - Train Loss: {mean(train_loss):.3f}')
+                    print(f'Epoch {epoch + 1}/{epochs}'
+                          + f' - Train Loss: {mean(train_loss):.3f}')
         # TODO: 追加学習のために再学習の際、self.epochを利用する形にする
         self.epoch = epoch + 1
 
@@ -475,7 +480,12 @@ class RunApproximateGP(object):
             optimizer=self.optimizer,
             loss=self.loss
         )
-        self.epoch, self.model, self.likelihood, self.mll, self.optimizer, self.loss = load_model(file_path, **data)
+        (self.epoch,
+         self.model,
+         self.likelihood,
+         self.mll,
+         self.optimizer,
+         self.loss) = load_model(file_path, **data)
 
     def kernel_coeff(self):
         """kernelの係数を出力するメソッド
@@ -489,7 +499,8 @@ class RunApproximateGP(object):
 
         Warning
         --------
-        RBFKernelの場合、各説明変数の重要度 $\eta$ は出力される `'base_kernel.raw_lengthscale'` の逆数の2乗に対応する
+        RBFKernelの場合、各説明変数の重要度 $\eta$ は出力される `'base_kernel.raw_lengthscale'`
+        の逆数の2乗に対応する
         """
         # TODO: kernel関数をスイッチさせ、それに応じてわかりやすい形に変形する
         output_dict = self.model.covar_module.state_dict()

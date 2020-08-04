@@ -114,7 +114,8 @@ class RunExactGP(object):
         - :obj:`'RQKernel'`
         - :obj:`'SpectralMixtureKernel'`
 
-        基本はstrで指定されることを想定しているものの、 :obj:`gpytorch.kernels` を用いた自作のカーネル関数を入力することも可能
+        基本はstrで指定されることを想定しているものの、 :obj:`gpytorch.kernels`
+        を用いた自作のカーネル関数を入力することも可能
     likelihood : str, default :obj:`'GaussianLikelihood'`
         likelihoodとして使用するクラス名が指定される。
 
@@ -323,9 +324,12 @@ class RunExactGP(object):
 
             if epoch % (epochs//10) == 0 and verbose:
                 if test_loss:
-                    print(f'Epoch {epoch + 1}/{epochs} - Train Loss: {mean(train_loss):.3f} / Test Loss: {mean(test_loss):.3f}')
+                    print(f'Epoch {epoch + 1}/{epochs}'
+                          + f' - Train Loss: {mean(train_loss):.3f} /'
+                          + f' Test Loss: {mean(test_loss):.3f}')
                 else:
-                    print(f'Epoch {epoch + 1}/{epochs} - Train Loss: {mean(train_loss):.3f}')
+                    print(f'Epoch {epoch + 1}/{epochs}'
+                          + f' - Train Loss: {mean(train_loss):.3f}')
         # TODO: 追加学習のために再学習の際、self.epochを利用する形にする
         self.epoch = epoch + 1
 
@@ -402,7 +406,12 @@ class RunExactGP(object):
             optimizer=self.optimizer,
             loss=self.loss
         )
-        self.epoch, self.model, self.likelihood, self.mll, self.optimizer, self.loss = load_model(file_path, **data)
+        (self.epoch,
+         self.model,
+         self.likelihood,
+         self.mll,
+         self.optimizer,
+         self.loss) = load_model(file_path, **data)
 
     # TODO : def kernel_coeff(self)
 

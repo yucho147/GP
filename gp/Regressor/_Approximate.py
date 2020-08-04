@@ -16,7 +16,8 @@ class Approximate(RunApproximateGP):
     inducing_points_num : int or float
         補助変数の個数(int)
 
-        もし 0 < inducing_points_num < 1 が渡された場合、学習用データの len と inducing_points_num の積が補助変数の個数として設定される
+        もし 0 < inducing_points_num < 1 が渡された場合、学習用データの len と
+        inducing_points_num の積が補助変数の個数として設定される
     kernel : str or :obj:`gpytorch.kernels`, default :obj:`'RBFKernel'`
         使用するカーネル関数を指定する。下記から選択する。
 
@@ -28,7 +29,8 @@ class Approximate(RunApproximateGP):
         - :obj:`'RQKernel'`
         - :obj:`'SpectralMixtureKernel'`
 
-        基本はstrで指定されることを想定しているものの、 :obj:`gpytorch.kernels` を用いた自作のカーネル関数を入力することも可能
+        基本はstrで指定されることを想定しているものの、 :obj:`gpytorch.kernels`
+        を用いた自作のカーネル関数を入力することも可能
     likelihood : str, default :obj:`'GaussianLikelihood'`
         likelihoodとして使用するクラス名が指定される。下記から選択する。
 

@@ -24,7 +24,8 @@ class Exact(RunExactGP):
         - :obj:`'RQKernel'`
         - :obj:`'SpectralMixtureKernel'`
 
-        基本はstrで指定されることを想定しているものの、 :obj:`gpytorch.kernels` を用いた自作のカーネル関数を入力することも可能
+        基本はstrで指定されることを想定しているものの、 :obj:`gpytorch.kernels`
+        を用いた自作のカーネル関数を入力することも可能
     likelihood : str, default :obj:`'GaussianLikelihood'`
         likelihoodとして使用するクラス名が指定される。
 
