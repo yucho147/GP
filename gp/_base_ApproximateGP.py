@@ -214,7 +214,7 @@ class RunApproximateGP(object):
         elif self._likelihood in bernoullilikelihood:
             return BernoulliLikelihood().to(self.device)
         else:
-            raise ValueError
+            raise ValueError(f'likelihood={self._likelihood}は用意されていません')
 
     def _set_mll(self, num_data, mll_conf):
         """mllとしてself._mllの指示の元、インスタンスを立てるメソッド
@@ -242,7 +242,7 @@ class RunApproximateGP(object):
                 **mll_conf
             )
         else:
-            raise ValueError
+            raise ValueError(f'mll={self._mll}は用意されていません')
 
     def _set_optimizer(self, lr, opt_conf):
         """optimizerとしてself._optimizerの指示の元、インスタンスを立てるメソッド
@@ -273,7 +273,7 @@ class RunApproximateGP(object):
                 {'params': self.likelihood.parameters()}
             ], lr=lr, **opt_conf)
         else:
-            raise ValueError
+            raise ValueError(f'optimizer={self._optimizer}は用意されていません')
 
     def set_model(self,
                   train_x,
@@ -311,7 +311,7 @@ class RunApproximateGP(object):
             indices = randperm(len(train_x))[:inducing_points_len]
             inducing_points = train_x[indices]
         else:
-            raise ValueError
+            raise ValueError('inducing_points_numに正しい値が入力されていません')
         ard_option = self.ard_option
         ex_var_dim = train_x.shape[1]
 

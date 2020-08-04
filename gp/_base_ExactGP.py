@@ -184,7 +184,7 @@ class RunExactGP(object):
         if self._likelihood in gaussianlikelihood:
             return GaussianLikelihood().to(self.device)
         else:
-            raise ValueError
+            raise ValueError(f'likelihood={self._likelihood}は用意されていません')
 
     def _set_mll(self, mll_conf):
         """mllとしてself._mllの指示の元、インスタンスを立てるメソッド
@@ -196,7 +196,7 @@ class RunExactGP(object):
                 self.model
             )
         else:
-            raise ValueError
+            raise ValueError(f'mll={self._mll}は用意されていません')
 
     def _set_optimizer(self, lr, opt_conf):
         """optimizerとしてself._optimizerの指示の元、インスタンスを立てるメソッド
@@ -222,7 +222,7 @@ class RunExactGP(object):
                 {'params': self.model.parameters()}
             ], lr=lr, **opt_conf)
         else:
-            raise ValueError
+            raise ValueError(f'optimizer={self._optimizer}は用意されていません')
 
     def set_model(self,
                   train_x,
