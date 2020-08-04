@@ -31,6 +31,6 @@ class Exact(RunExactGP):
     """
     def __init__(self, *args, **kwargs):
         if kwargs.get('likelihood') in clas:
-            raise ValueError(f"regressionに{kwargs.get('likelihood')}は使えない")
+            raise ValueError(f"Regressorに{kwargs.get('likelihood')}は使えない")
         else:
             super(Exact, self).__init__(*args, **kwargs)

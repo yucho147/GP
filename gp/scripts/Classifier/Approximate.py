@@ -40,6 +40,6 @@ class Approximate(RunApproximateGP):
         if kwargs.get('likelihood') is None:
             kwargs['likelihood'] = 'BernoulliLikelihood'
         if kwargs.get('likelihood') in regs:
-            raise ValueError(f"classiferに{kwargs.get('likelihood')}は使えない")
+            raise ValueError(f"Classifierに{kwargs.get('likelihood')}は使えない")
         else:
             super(Approximate, self).__init__(*args, **kwargs)

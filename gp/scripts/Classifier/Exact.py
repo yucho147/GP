@@ -32,7 +32,7 @@ class Exact(RunExactGP):
     """
     def __init__(self, *args, **kwargs):
         if kwargs.get('likelihood') in regs:
-            raise ValueError(f"classiferに{kwargs.get('likelihood')}は使えない")
+            raise ValueError(f"Classifierに{kwargs.get('likelihood')}は使えない")
         else:
             raise ValueError("Exactでは分類問題を解けない")
             # super(Exact, self).__init__(*args, **kwargs)
