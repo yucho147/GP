@@ -360,6 +360,8 @@ class RunExactGP(object):
         """
         if type(X) == ndarray:
             X = array_to_tensor(X)
+        if not 0.5 < cl < 1.0:
+            raise ValueError(f'cl={cl}が正しい値ではありません')
         self.model.eval()
         self.likelihood.eval()
         with no_grad():
