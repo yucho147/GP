@@ -1,5 +1,5 @@
 .. gp documentation master file, created by
-   sphinx-quickstart on Wed Jun 24 20:57:33 2020.
+   sphinx-quickstart on Tue Aug  4 14:09:20 2020.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 

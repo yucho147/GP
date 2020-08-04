@@ -12,14 +12,14 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../'))
+sys.path.insert(0, os.path.abspath('../gp'))
 
 
 # -- Project information -----------------------------------------------------
 
 project = 'gp'
 copyright = '2020, Hirotaka Kato, Naofumi Emoto and Yuya Kaneta'
-author = 'Author: Hirotaka Kato, Naofumi Emoto and Yuya Kaneta'
+author = 'Hirotaka Kato, Naofumi Emoto and Yuya Kaneta'
 
 
 # -- General configuration ---------------------------------------------------

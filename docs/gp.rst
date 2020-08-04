@@ -7,8 +7,20 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
-   gp.scripts
-   gp.utils
+   gp.Classifier
+   gp.Regressor
+
+Submodules
+----------
+
+gp.utils module
+---------------
+
+.. automodule:: gp.utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 
 Module contents
 ---------------

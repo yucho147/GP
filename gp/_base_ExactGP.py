@@ -91,7 +91,7 @@ class ExactGPModel(ExactGP):
         self.covar_module = set_kernel(kernel, **_ker_conf)
 
     def forward(self, x):
-        """ApproximateGPModelのforwardメソッド
+        """ExactGPModelのforwardメソッド
         """
         mean_x = self.mean_module(x)
         covar_x = self.covar_module(x)
