@@ -415,7 +415,24 @@ class RunExactGP(object):
          self.optimizer,
          self.loss) = load_model(file_path, **data)
 
-    # TODO : def kernel_coeff(self)
+    def kernel_coeff(self):
+        """kernelの係数を出力するメソッド
+
+        Returns
+        -------
+        output_dict : dict
+            カーネル関数の係数
+
+            `ard_option=True` の場合、 $\Theta$ が各々の説明変数ごとに重みを変えて更新され、出力される
+
+        Warning
+        --------
+        RBFKernelの場合、各説明変数の重要度 $\eta$ は出力される `'base_kernel.raw_lengthscale'`
+        の逆数の2乗に対応する
+        """
+        # TODO: kernel関数をスイッチさせ、それに応じてわかりやすい形に変形する
+        output_dict = self.model.covar_module.state_dict()
+        return output_dict
 
     def plot_kernel(self, *, kernel=None, plot_range=None, **kwargs):
         """カーネル関数のプロット

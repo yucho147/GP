@@ -102,8 +102,8 @@ class Exact(RunExactGP):
     def load(self, *args, **kwargs):
         super(Exact, self).load(*args, **kwargs)
 
-    # def kernel_coeff(self, *args, **kwargs):
-    #     super(Exact, self).kernel_coeff(*args, **kwargs)
+    def kernel_coeff(self, *args, **kwargs):
+        super(Exact, self).kernel_coeff(*args, **kwargs)
 
     def plot_kernel(self, *args, **kwargs):
         super(Exact, self).plot_kernel(*args, **kwargs)
