@@ -85,7 +85,7 @@ def load_data(file_path):
             reader = csv.reader(fi_, delimiter=',')
         header = next(reader)
         for d in reader:
-            data.append(d)
+            data.append([float(i) for i in d])
     return header, data
 
 
