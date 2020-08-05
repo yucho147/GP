@@ -58,7 +58,9 @@ ax3.fill_between(
 plt.show()
 #+END_SRC
 
-[[[[https://github.com/yucho147/GP/data/sample_data_1.png]]]]
+<p align="center">
+    <img src="data/sample_data_1.png" width="800"\>
+</p>
 
 ** Installation
  Requirements:
