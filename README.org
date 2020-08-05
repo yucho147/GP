@@ -58,9 +58,7 @@ ax3.fill_between(
 plt.show()
 #+END_SRC
 
-<p align="center">
-    <img src="data/sample_data_1.png" width="800"\>
-</p>
+<p align="center"><img src="data/sample_data_1.png" /></p>
 
 ** Installation
  Requirements:
