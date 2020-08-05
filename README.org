@@ -1,6 +1,7 @@
-* ガウス過程の簡単予測モジュール
+* ガウス過程の予測モジュール
 ** 概要
-せっかくガウス過程を勉強したので、実装レベルで理解を目指す。
+ガウス過程モデルを実行するためのモジュールを作成しました。
+GPyTorchをベースにコードを実装しています。
 
 ** Examples
 #+BEGIN_SRC python
@@ -26,7 +27,7 @@ build instance, fit and predict
 #+begin_src python
 regressor = Regressor.Exact()
 regressor.set_model(x.reshape(-1, 1), y, lr=1e-2)
-regressor.fit(10000)
+regressor.fit(20000)
 predicts = regressor.predict(test_x.reshape(-1, 1), sample_num=10, sample_f_num=10)
 #+end_src
 
@@ -57,13 +58,15 @@ ax3.fill_between(
 plt.show()
 #+END_SRC
 
+[[file:https://github.com/yucho147/GP/data/sample_data_1.png]]
+
 ** Installation
  Requirements:
 
 - Python >= 3.6
 - PyTorch >= 1.5
 
- Install GPyTorch using pip:
+ Install xxx_name using pip:
 #+BEGIN_SRC bash
 pip install xxx_name
 #+END_SRC
