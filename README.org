@@ -1,17 +1,6 @@
-* ガウス過程の簡単予測モジュールを作っちゃおうプロジェクト
+* ガウス過程の簡単予測モジュール
 ** 概要
 せっかくガウス過程を勉強したので、実装レベルで理解を目指す。
-目標は以下の2点
-- 案件で使えるレベルを目指す
-  - PoCをターゲットとして想定している
-    - PoCなどではデータも少なくガウス過程の主戦場。意味があるモジュールだと思う
-    - PoCなどで分散まで結果を出せるのは一人称・二人称含めて有益。意味のあるモジュールだと思う
-- overtake a scikit-learn
-  - [[https://scikit-learn.org/stable/modules/gaussian_process.html#gaussian-process][sklearn.gaussian_process: Gaussian Processes]]
-  - [[https://github.com/scikit-learn/scikit-learn/tree/fd237278e895b42abe8d8d09105cbb82dc2cbba7/sklearn/gaussian_process][source]]
-    - ~_gpr.py~ : 回帰
-    - ~_gpc.py~ : 分類
-    - ~kernels.py~ : カーネル関数
 ** setup
 For developer
 #+BEGIN_SRC bash
@@ -23,69 +12,13 @@ or (for w/o dependency packages)
 pip install -e . --no-deps
 #+END_SRC
 *** ドキュメント作成
-docstringちゃんと書くので ~sphinx~ を使ってドキュメントを作ろう
 **** 初期設定
 ~sphinx~ のインストール
  #+BEGIN_SRC bash
 pip install sphinx
  #+END_SRC
 
-初回のみ以下を実行(既にディレクトリがある場合スキップされる)
+**** ドキュメントの作成
  #+BEGIN_SRC bash
-sphinx-apidoc -F -o docs/ gp/
+python setup.py build_sphinx
  #+END_SRC
-
- 本編のコードを更新したら以下のコマンドでドキュメントが更新される。
- #+BEGIN_SRC bash
-cd docs/
-make html
- #+END_SRC
-
- 以上でドキュメントが作成される。
- ~_build/html/index.html~ をブラウザで確認
-
- でサーバーを立てて見れるようになる。
-
-** ディレクトリ
-#+BEGIN_SRC bash
-GP/
-├── README.org
-├── data
-├── docs
-│   ├── Makefile
-│   ├── conf.py
-│   ├── gp.rst
-│   ├── gp.scripts.rst
-│   ├── gp.utils.rst
-│   ├── index.rst
-│   └── make.bat
-├── env
-│   └── requirements.txt
-├── gp
-│   ├── scripts
-│   │   ├── preprocess.py
-│   │   └── run.py
-│   └── utils
-│       └── utils.py
-├── proto
-├── setup.cfg
-└── setup.py
-#+END_SRC
-*** ~scripts~
-実際に使うコード置き場
-*** ~utils~
-便利関数置き場
-*** ~docs~
-ドキュメント置き場
-** その他
- やりやすいように開発しちゃいやしょう
-*** TODOリスト(覚書)
-**** TODO そもそも予測まで動くもの作る
-**** TODO なんかしらのデータセットの用意
-**** TODO dataloader的なもの
-~preprocess.py~ あたりで対応かと
-**** TODO 分類のモデル作成
-**** TODO plotする関数の追加
-**** TODO カーネル関数の拡充
-**** TODO ニューラルネットも組みたい
-参考 : [[https://brainpad.atlassian.net/wiki/spaces/~499002829/pages/1346045974/Flipout+Efficient+Pseudo-Independent+Weight+Perturbations+on+Mini-Batches][Flipout: Efficient Pseudo-Independent Weight Perturbations on Mini-Batchesの解説]]
