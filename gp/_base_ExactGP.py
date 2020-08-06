@@ -323,8 +323,8 @@ class RunExactGP(object):
                     loss = - self.mll(output, test_y)
                     test_loss.append(loss.item())
 
-            epoch_bool = epoch % (epochs // 10) == 0 if epochs >= 10 else True
-            if epoch_bool or epoch == epochs - 1 and verbose:
+            is_display_timing = epoch % (epochs // 10) == 0 if epochs >= 10 else True
+            if is_display_timing or epoch == epochs - 1 and verbose:
                 if test_loss:
                     print(f'Epoch {epoch + 1}/{epochs}'
                           + f' - Train Loss: {mean(train_loss):.5f} /'

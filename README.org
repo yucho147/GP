@@ -63,21 +63,22 @@ plt.show()
 <p align="center"><img src="./data/sample_data_1.png"></p>
 
 ** Installation
- Requirements:
+Requirements:
 
 - Python >= 3.6
 - PyTorch >= 1.5
 
- Install xxx_name using pip:
+
+Install xxx_name using pip:
 #+BEGIN_SRC bash
 pip install xxx_name
 #+END_SRC
 
- For developer
+For developer
  #+BEGIN_SRC bash
 pip install -e .[dev]
  #+END_SRC
- or
+or
  #+BEGIN_SRC bash
 pip install -r env/requirements.txt
  #+END_SRC
