@@ -5,11 +5,11 @@ GPyTorchをベースにコードを実装しています。
 
 ** Examples
 #+BEGIN_SRC python
-from gp import RunApproximateGP
-from gp import RunExactGP
-from gp import Regressor
-from gp import Classifier
-from gp.utils import *
+from eagpytorch import RunApproximateGP
+from eagpytorch import RunExactGP
+from eagpytorch import Regressor
+from eagpytorch import Classifier
+from eagpytorch.utils import *
 import matplotlib.pyplot as plt
 import numpy as np
 #+END_SRC
@@ -69,9 +69,9 @@ Requirements:
 - PyTorch >= 1.5
 
 
-Install xxx_name using pip:
+Install eaGPyTorch using pip:
 #+BEGIN_SRC bash
-pip install xxx_name
+pip install eagpytorch
 #+END_SRC
 
 For developer

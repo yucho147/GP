@@ -1,5 +1,5 @@
-gp package
-==========
+eagpytorch package
+==================
 
 Subpackages
 -----------
@@ -7,16 +7,16 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
-   gp.Classifier
-   gp.Regressor
+   eagpytorch.Classifier
+   eagpytorch.Regressor
 
 Submodules
 ----------
 
-gp.utils module
----------------
+eagpytorch.utils module
+-----------------------
 
-.. automodule:: gp.utils
+.. automodule:: eagpytorch.utils
    :members:
    :undoc-members:
    :show-inheritance:
@@ -25,7 +25,7 @@ gp.utils module
 Module contents
 ---------------
 
-.. automodule:: gp
+.. automodule:: eagpytorch
    :members:
    :undoc-members:
    :show-inheritance:

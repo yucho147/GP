@@ -12,12 +12,12 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../gp'))
+sys.path.insert(0, os.path.abspath('../eagpytorch'))
 
 
 # -- Project information -----------------------------------------------------
 
-project = 'gp'
+project = 'eaGPyTorch'
 copyright = '2020, Hirotaka Kato, Naofumi Emoto and Yuya Kaneta'
 author = 'Hirotaka Kato, Naofumi Emoto and Yuya Kaneta'
 
