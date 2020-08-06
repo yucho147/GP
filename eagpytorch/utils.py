@@ -503,4 +503,7 @@ def _sample_f(predicts_f, sample_f_num):
     if predicts_f is None:
         return None
     else:
-        return tensor_to_array(predicts_f.sample(torch.Size([sample_f_num])))
+        if sample_f_num is not None:
+            return tensor_to_array(predicts_f.sample(torch.Size([sample_f_num])))
+        else:
+            return None
