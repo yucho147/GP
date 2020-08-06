@@ -395,14 +395,15 @@ class RunApproximateGP(object):
                         loss = - self.mll(output, y_batch)
                         test_loss.append(loss.item())
 
-            if epoch % (epochs//10) == 0 and verbose:
+            epoch_bool = epoch % (epochs // 10) == 0 if epochs >= 10 else True
+            if epoch_bool or epoch == epochs - 1 and verbose:
                 if test_loss:
                     print(f'Epoch {epoch + 1}/{epochs}'
-                          + f' - Train Loss: {mean(train_loss):.3f} /'
-                          + f' Test Loss: {mean(test_loss):.3f}')
+                          + f' - Train Loss: {mean(train_loss):.5f} /'
+                          + f' Test Loss: {mean(test_loss):.5f}')
                 else:
                     print(f'Epoch {epoch + 1}/{epochs}'
-                          + f' - Train Loss: {mean(train_loss):.3f}')
+                          + f' - Train Loss: {mean(train_loss):.5f}')
         # TODO: 追加学習のために再学習の際、self.epochを利用する形にする
         self.epoch = epoch + 1
 

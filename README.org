@@ -23,7 +23,7 @@ y = np.array(data)[:,1]
 test_x = np.linspace(0, 1, 200)
 #+end_src
 
-build instance, fit and predict
+create instance, fit and predict
 #+begin_src python
 regressor = Regressor.Exact()
 regressor.set_model(x.reshape(-1, 1), y, lr=1e-2)
@@ -49,7 +49,7 @@ ax3 = fig.add_subplot(3, 1, 3, title='mean and conf area(1sigma)')
 ax3.scatter(x, y, c='darkgreen')
 ax3.plot(test_x, predicts.mean)
 ax3.fill_between(
-    test_x.reshape(1, -1)[0],
+    test_x,
     predicts.upper,
     predicts.lower,
     alpha=0.6,
