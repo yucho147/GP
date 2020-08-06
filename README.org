@@ -26,9 +26,9 @@ test_x = np.linspace(0, 1, 200)
 create instance, fit and predict
 #+begin_src python
 regressor = Regressor.Exact()
-regressor.set_model(x.reshape(-1, 1), y, lr=1e-2)
+regressor.set_model(x, y, lr=1e-2)
 regressor.fit(20000)
-predicts = regressor.predict(test_x.reshape(-1, 1), sample_num=10, sample_f_num=10)
+predicts = regressor.predict(test_x, sample_num=10, sample_f_num=10)
 #+end_src
 
 plot

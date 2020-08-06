@@ -298,7 +298,8 @@ class RunApproximateGP(object):
             学習データをシャッフルしてミニバッチ学習させるかを設定
         """
         if type(train_x) == ndarray:
-            train_x = array_to_tensor(train_x)
+            train_x = (array_to_tensor(train_x),)
+            train_x = tuple(tri.unsqueeze(-1) if tri.ndimension() == 1 else tri for tri in train_x)[0]
         if type(train_y) == ndarray:
             train_y = array_to_tensor(train_y)
         if isinstance(self.inducing_points_num, float) and \

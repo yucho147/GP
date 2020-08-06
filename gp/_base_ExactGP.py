@@ -241,7 +241,8 @@ class RunExactGP(object):
             学習率
         """
         if type(train_x) == ndarray:
-            train_x = array_to_tensor(train_x)
+            train_x = (array_to_tensor(train_x),)
+            train_x = tuple(tri.unsqueeze(-1) if tri.ndimension() == 1 else tri for tri in train_x)[0]
         if type(train_y) == ndarray:
             train_y = array_to_tensor(train_y)
         ard_option = self.ard_option
@@ -295,7 +296,8 @@ class RunExactGP(object):
             表示形式
         """
         if type(test_x) == ndarray:
-            test_x = array_to_tensor(test_x)
+            test_x = (array_to_tensor(test_x),)
+            test_x = tuple(tri.unsqueeze(-1) if tri.ndimension() == 1 else tri for tri in test_x)[0]
         if type(test_y) == ndarray:
             test_y = array_to_tensor(test_y)
 
@@ -305,7 +307,6 @@ class RunExactGP(object):
             self.model.train()
             self.likelihood.train()
             self.optimizer.zero_grad()
-            # 今回のみの処理な気がする([0]のところ)
             output = self.model(self.model.train_inputs[0])
             loss = - self.mll(output, self.model.train_targets)
             loss.backward()
