@@ -69,9 +69,9 @@ Requirements:
 - PyTorch >= 1.5
 
 
-Install eaGPyTorch using pip:
+Install eaGPyTorch using pip(まだpypiに登録してません。あしからず。):
 #+BEGIN_SRC bash
-pip install eagpytorch
+pip install eagpytorch		# 
 #+END_SRC
 
 For developer
