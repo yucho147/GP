@@ -1,4 +1,4 @@
-* ガウス過程の予測モジュール
+* eaGPyTorch
 ** 概要
 ガウス過程モデルを実行するためのモジュールを作成しました。
 GPyTorchをベースにコードを実装しています。
@@ -60,7 +60,7 @@ plt.show()
 
 出力結果
 
-<p align="center"><img src="./data/sample_data_1.png"></p>
+[[https://raw.githubusercontent.com/yucho147/GP/master/data/sample_data_1.png]]
 
 ** Installation
 Requirements:
@@ -69,9 +69,9 @@ Requirements:
 - PyTorch >= 1.5
 
 
-Install eaGPyTorch using pip(まだpypiに登録してません。あしからず。):
+Install eaGPyTorch using pip:
 #+BEGIN_SRC bash
-pip install eagpytorch		# 
+pip install eagpytorch
 #+END_SRC
 
 For developer
@@ -83,6 +83,21 @@ or
 pip install -r env/requirements.txt
  #+END_SRC
 
+create packages
+#+begin_src python
+python setup.py sdist
+python setup.py bdist_wheel
+#+end_src
+
+upload pypi
+#+begin_src python
+python -m twine upload --repository pypi dist/eagpytorch-<version>*
+#+end_src
+
+upload testpypi
+#+begin_src python
+python -m twine upload --repository-url https://test.pypi.org/legacy/ --skip-existing dist/eagpytorch-<version>*
+#+end_src
 
 *** ドキュメント作成
 **** 初期設定
