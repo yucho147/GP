@@ -1,4 +1,5 @@
 * eaGPyTorch
+[[https://pypi.org/project/eagpytorch][https://img.shields.io/pypi/v/eagpytorch.svg]]
 ** 概要
 ガウス過程モデルを実行するためのモジュールを作成しました。
 GPyTorchをベースにコードを実装しています。
