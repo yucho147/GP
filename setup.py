@@ -13,7 +13,7 @@ def read(*names, **kwargs):
 
 
 install_requires = [
-    "pytorch",
+    "torch",
     "gpytorch",
     "matplotlib",
     "numpy",
@@ -26,7 +26,7 @@ install_requires = [
 # Run the setup
 setup(
     name="eagpytorch",
-    version='0.1.1',
+    version='0.1.2',
     description="We have created a module to run the Gaussian process model. We have implemented the code based on GPyTorch.",
     author="Hirotaka Kato, Naofumi Emoto and Yuya Kaneta",
     url="https://github.com/yucho147/GP",
