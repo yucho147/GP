@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
+from pkg_resources import get_distribution
 
-__version__ = '0.1.0'
+__version__ = get_distribution('eagpytorch').version
 
 __all__ = [
     "ApproximateGPModel",

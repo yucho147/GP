@@ -13,24 +13,13 @@ def read(*names, **kwargs):
         return fp.read()
 
 
-def find_version(*file_paths):
-    version_file = read(*file_paths)
-    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", version_file, re.M)
-    if version_match:
-        return version_match.group(1)
-    raise RuntimeError("Unable to find version string.")
-
-
-# readme = open("README.md").read()  # .orgがpypiでは対応していない
-version = find_version("eagpytorch", "__init__.py")
-
 torch_min = "1.5"
 install_requires = [
     "gpytorch",
     "matplotlib",
     "numpy",
     "pyro-ppl",
-    "PyYAML"
+    "PyYAML",
     "attrdict"
 ]
 try:
@@ -45,8 +34,8 @@ except ImportError:
 # Run the setup
 setup(
     name="eagpytorch",
-    version=version,
-    description="ガウス過程モデルを実行するためのモジュールを作成しました。 GPyTorchをベースにコードを実装しています。",
+    version='0.1.0',
+    description="We have created a module to run the Gaussian process model. We have implemented the code based on GPyTorch.",
     # long_description=readme,  # .orgがpypiでは対応していない
     # long_description_content_type="text/markdown",  # .orgがpypiでは対応していない
     author="Hirotaka Kato, Naofumi Emoto and Yuya Kaneta",
